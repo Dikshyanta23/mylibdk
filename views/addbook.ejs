@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Book Form</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background-color: #f9f9f9; /* Set background color */
+      }
+      /* Form styling */
+      #form {
+        width: 400px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #fff; /* White background */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 20px auto;
+      }
+      /* Input styling */
+      input[type="text"],
+      input[type="number"],
+      input[type="file"] {
+        width: calc(100% - 20px);
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-size: 16px;
+      }
+      input[type="file"] {
+        cursor: pointer;
+      }
+      /* Submit button styling */
+      #btn {
+        width: 80px;
+        padding: 10px;
+        background-color: #4caf50; /* Match color with navbar */
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease; /* Smooth hover transition */
+      }
+      #btn:hover {
+        background-color: #388e3c; /* Darker green on hover */
+      }
+      .btn-container {
+        display: flex;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <%- include('nav') %>
+    <form enctype="multipart/form-data" id="form">
+      <h2>Add Book</h2>
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" value="the great gatsby" />
+      <label for="author">Author:</label>
+      <input type="text" id="author" name="author" value="scott f fitzerald" />
+      <label for="genre">Genre:</label>
+      <input type="text" id="genre" name="genre" value="fiction" />
+      <label for="publishedyear">Publication Year:</label>
+      <input type="text" id="publishedyear" name="publishedyear" value="2010" />
+      <label for="price">Price:</label>
+      <input type="number" id="price" name="price" value="200" />
+      <label for="stock">Stock:</label>
+      <input type="number" id="stock" name="stock" value="10" />
+      <label for="fine">Fine:</label>
+      <input type="number" id="fine" name="fine" value="2" />
+      <label for="photo">Photo:</label>
+      <input type="file" id="photo" name="photo" accept="image/*" />
+    </form>
+    <div class="btn-container"><button id="btn">Submit</button></div>
+
+    <script>
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-right",
+        iconColor: "#014B92",
+        customClass: {
+          popup: "colored-toast",
+        },
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+      const Toast2 = Swal.mixin({
+        toast: true,
+        position: "top-right",
+        iconColor: "#014B92",
+        customClass: {
+          popup: "colored-toast",
+        },
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+
+      $("#btn").click(function (event) {
+        event.preventDefault();
+
+        const form = document.getElementById("form");
+        const formData = new FormData(form);
+        $("#loading").hide();
+        $("#noloading").show();
+        $("#myBtn").prop("disabled", true);
+        let name = $("#name").val();
+        let price = $("#price").val();
+        let stock = $("#stock").val();
+        let fine = $("#fine").val();
+        let photo = $("#photo")[0].files[0];
+        let author = $("#author").val();
+        let genre = $("#genre").val();
+        let publishedyear = $("#publishedyear").val();
+        if (name == "") {
+          $("#myBtn").prop("disabled", true);
+          $("#loading").show();
+          $("#noloading").hide();
+          return Toast.fire({
+            text: "name is required !",
+            icon: "error",
+          }).then(() => {
+            $("#myBtn").prop("disabled", false);
+            $("#loading").hide();
+            $("#noloading").show();
+          });
+        }
+        if (photo == "") {
+          $("#myBtn").prop("disabled", true);
+          $("#loading").show();
+          $("#noloading").hide();
+
+          return Toast.fire({
+            text: "photo is required !",
+            icon: "error",
+          }).then(() => {
+            $("#myBtn").prop("disabled", false);
+          });
+        }
+        const publishedYearInt = Number(publishedyear);
+        if (!publishedYearInt) {
+          $("#myBtn").prop("disabled", true);
+          $("#loading").show();
+          $("#noloading").hide();
+
+          return Toast.fire({
+            text: "Only a year value is accepted as published year",
+            icon: "error",
+          }).then(() => {
+            $("#myBtn").prop("disabled", false);
+          });
+        }
+
+        return fetch("/dashboard/addbook/upload", {
+          method: "POST",
+          body: formData,
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.title == "success") {
+              $("#myBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast.fire({
+                icon: "success",
+                title: "Book successfully added!",
+              }).then(() => {
+                window.location.href = `/dashboard/addbook`;
+              });
+            }
+            if (data.title == "photo upload error") {
+              $("#myBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast.fire({
+                icon: "error",
+                title: "No photo uploaded",
+              }).then(() => {
+                $("#myBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            if (data.title == "field error") {
+              $("#myBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast2.fire({
+                icon: "error",
+                title: `The field values are not properly input`,
+              }).then(() => {
+                $("#myBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            if (data.title == "photo error") {
+              $("#myBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast2.fire({
+                icon: "error",
+                title: `Unable to find the photo`,
+              }).then(() => {
+                $("#myBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            if (data.title == "user not found") {
+              $("#myBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast2.fire({
+                icon: "error",
+                title: `Could not find the user`,
+              }).then(() => {
+                $("#myBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            if (data.title == "user update error") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast.fire({
+                icon: "error",
+                title: `Could not update the user`,
+              }).then(() => {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            if (data.title == "create error") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast.fire({
+                icon: "error",
+                title: `Could not create the new book`,
+              }).then(() => {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,169 @@
+<!-- form.ejs -->
+<% const {name, price, stock, fine, id, author, genre, publishedYear} =
+book.dataValues || {} %>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Form</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .form-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 400px;
+      }
+
+      .form-container input[type="text"],
+      .form-container input[type="email"],
+      .form-container input[type="password"],
+      .form-container input[type="number"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      .form-container input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #4caf50;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .form-container input[type="submit"]:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form-container">
+      <h2>Registration Form</h2>
+      <form id="registrationForm">
+        <label for="name">Name: </label>
+        <input type="text" id="name" name="name" value="<%= name %>" />
+        <label for="author">Author: </label>
+        <input type="text" id="author" name="author" value="<%= author %>" />
+        <label for="genre">Genre: </label>
+        <input type="text" id="genre" name="genre" value="<%= genre %>" />
+        <label for="publishedyear">Publised Year: </label>
+        <input
+          type="text"
+          id="publishedyear"
+          name="publishedyear"
+          value="<%= publishedYear %>"
+        />
+
+        <label for="price">Price: </label>
+        <input type="number" id="price" name="price" value="<%= price %>" />
+
+        <label for="stock">Stock:</label>
+        <input type="number" id="stock" name="stock" value="<%= stock %>" />
+
+        <label for="fine">Fine:</label>
+        <input type="number" id="fine" name="fine" value="<%= fine %>" />
+      </form>
+      <button type="submit" id="submitBtn" style="margin-top: 10px">
+        Submit
+      </button>
+    </div>
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    const form = document.getElementById("registrationForm");
+    $("#submitBtn").on("click", (e) => {
+      e.preventDefault(); // Prevent the default form submission
+
+      const formData = new FormData(form);
+      formData.append("id", "<%= id %>");
+      let publishedyear = $("#publishedyear").val();
+      const publishedyearNum = Number(publishedyear);
+      if (!publishedyearNum) {
+        return Toast.fire({
+          icon: "error",
+          title: "Published year must be a date",
+        }).then(() => {
+          window.location.reload();
+        });
+      }
+
+      return fetch(`/dashboard/allbooks/editbook/`, {
+        method: "PUT", // Change the method to POST
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(Object.fromEntries(formData.entries())),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.title == "success") {
+            return Toast.fire({
+              icon: "success",
+              title: "Details updated",
+            }).then(() => {
+              location.href = `/dashboard/allbooks`;
+            });
+          }
+          if (data.title == "save error") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not save the update",
+            });
+          }
+          if (data.title == "update error") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not update details",
+            });
+          }
+          if (data.title == "bot found") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not find the book",
+            });
+          }
+        })
+        .catch((error) => {
+          console.error(
+            "There was a problem with your fetch operation:",
+            error
+          );
+        });
+    });
+  </script>
+</html>

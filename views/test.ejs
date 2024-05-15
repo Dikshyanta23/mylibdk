@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- comment -->
+  <%- include("../../components/head.ejs") %>
+  <body>
+    <!-- navbar -->
+    <%- include("../../components/header.ejs") %>
+    <!-- body -->
+    <div class="welcome-body">
+      <div class="container">
+        <!-- welcome-section -->
+        <div class="welcome-section">
+          <div class="login-section m-lg-0 m-auto">
+            <div class="login-titlecontainer">
+              <div class="loginheading">
+                <h1 class="primary-p">Welcome Back!</h1>
+              </div>
+              <div>
+                <p class="text-lightfade">
+                  You may use social sites for more fluid experience
+                </p>
+              </div>
+            </div>
+            <div class="logininner-inputsection">
+              <form>
+                <div class="emailpassword-container">
+                  <div>
+                    <label class="primary-p" for="email">Email</label><br />
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      placeholder="example@gmail.com"
+                    />
+                  </div>
+                  <label class="primary-p" for="email"
+                    >Password
+                    <div class="eye-button">
+                      <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Re-type password"
+                      />
+                      <button
+                        type="button"
+                        onclick="togglePassWordView(this)"
+                        style="background: none"
+                      >
+                        <img
+                          src="/images/icons/eye-hide.svg"
+                          class="eye-hide"
+                          alt=""
+                        />
+                        <img
+                          src="/images/icons/eye-show.svg"
+                          alt=""
+                          class="eye-show"
+                          style="display: none"
+                        />
+                      </button>
+                    </div>
+                  </label>
+                </div>
+                <div class="checkboxcontainer">
+                  <div>
+                    <input type="checkbox" style="margin-right: 7px" />
+                    <label for="remember me">Remember me </label>
+                  </div>
+                  <div class="forgetpassword">
+                    <a href="/forgot-password">Forgot Password?</a>
+                  </div>
+                </div>
+                <button class="text-white submit" id="loginBtn">
+                  <div id="loading" class="loading" style="display: none"></div>
+                  <span id="noloading">Login</span>
+                </button>
+              </form>
+              <h6 class="primary-p">
+                Dont have an account?
+                <a href="/job-seeker/register"
+                  ><span class="text-blue">Sign up</span></a
+                >
+              </h6>
+            </div>
+          </div>
+          <div class="people-photo d-none d-lg-block">
+            <img src="/images/groupphotos.svg" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    const Toast2 = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 4000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    $("#loginBtn").on("click", (e) => {
+      e.preventDefault();
+      $("#loading").show();
+      $("#noloading").hide();
+      $("#loginBtn").prop("disabled", true);
+      let email = $("#email").val();
+      let password = $("#password").val();
+      if (email == "") {
+        $("#loginBtn").prop("disabled", false);
+        $("#loading").hide();
+        $("#noloading").show();
+        return Toast.fire({
+          text: "Email is required !",
+          icon: "error",
+        });
+      }
+      if (password == "") {
+        $("#loginBtn").prop("disabled", true);
+        $("#loading").hide();
+        $("#noloading").show();
+        return Toast.fire({
+          text: "Password is required !",
+          icon: "error",
+        });
+      }
+      return fetch("/job-seeker/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.title == "jobSeeker") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            return Toast.fire({
+              icon: "success",
+              title:
+                "Welcome back! You have successfully logged in as jobseeker",
+            }).then(() => {
+              $("#noloading").hide();
+              location.href = `/dashboard/job-seeker`;
+            });
+          }
+          if (data.title == "no user") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Swal.fire({
+              title: "User doesn't exist ",
+              text: "Do you want to register ?",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#014B92",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Yes",
+            }).then((result) => {
+              if (result.isDismissed) {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              }
+              if (result.isConfirmed) {
+                location.href = `/job-seeker/register`;
+              }
+            });
+          }
+          if (data.title == "different login") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Swal.fire({
+              title: "This is Job-Seeker Login Dashboard",
+              text: "Go To Employer Login Dashboard ?",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#014B92",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Yes",
+            }).then((result) => {
+              if (result.isDismissed) {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              }
+              if (result.isConfirmed) {
+                location.href = `/organization/login`;
+              }
+            });
+          }
+          if (data.title == "password") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "error",
+              title: "Incorrect Password !",
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "suspended") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast2.fire({
+              icon: "error",
+              title: `You have been Suspended ! Please reach out to us via our Contact Form for further details.`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "error") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "error",
+              title: `There is an issue. Please check again later.!`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+        });
+    });
+  </script>
+</html>

@@ -1,0 +1,82 @@
+<!-- about.ejs -->
+
+<% const {fullName, email, isAdmin, countryName, code, phone} = user %>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Information</title>
+    <style>
+      /* Centered div */
+      .centered-div {
+        width: 50%;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+      }
+      /* Heading style */
+      .centered-div h1 {
+        color: #4caf50; /* Green color */
+        margin-bottom: 20px; /* Spacing below heading */
+        text-align: center;
+      }
+      /* Flexbox container */
+      .info-container {
+        display: flex;
+        flex-direction: row; /* Arrange items in a column */
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        margin-bottom: 5px; /* Spacing below container */
+      }
+      /* Styling for information labels */
+      .info-label {
+        font-weight: bold;
+        color: #4caf50; /* Green color */
+        display: flex;
+        align-items: center;
+      }
+      /* Styling for information values */
+      .info-value {
+        color: #333;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <%- include('nav')%>
+    <div class="centered-div">
+      <h1>User Information</h1>
+      <div class="info-container">
+        <p class="info-label">Name:</p>
+        <p class="info-value"><%= fullName || 'not available'%></p>
+      </div>
+      <div class="info-container">
+        <p class="info-label">Email:</p>
+        <p class="info-value"><%= email || 'not available'%></p>
+      </div>
+      <div class="info-container">
+        <p class="info-label">Country Code:</p>
+        <p class="info-value"><%= code || 'not available'%></p>
+      </div>
+      <div class="info-container">
+        <p class="info-label">Country:</p>
+        <p class="info-value"><%= countryName || 'not available'%></p>
+      </div>
+      <div class="info-container">
+        <p class="info-label">Phone Number:</p>
+        <p class="info-value"><%= phone|| 'not available' %></p>
+      </div>
+      <div class="info-container">
+        <p class="info-label">Role:</p>
+        <p class="info-value"><%= isAdmin === true?'admin':'user' %></p>
+      </div>
+    </div>
+  </body>
+</html>

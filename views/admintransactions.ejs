@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transaction Approval</title>
+    <style>
+      body {
+        background-color: #f5f5f5;
+      }
+      .container {
+        text-align: center;
+        margin-top: 50px;
+      }
+      .transaction-item {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        display: inline-block;
+      }
+      .transaction-item h3 {
+        margin-top: 0;
+      }
+      .approve-button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      .reject-button {
+        background-color: #ff5733;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      #loginBtn {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .lds-dual-ring,
+      .lds-dual-ring:after {
+        box-sizing: border-box;
+      }
+      .lds-dual-ring {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+      }
+      .lds-dual-ring:after {
+        content: " ";
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin: 2px;
+        border-radius: 50%;
+        border: 6.4px solid currentColor;
+        border-color: currentColor transparent currentColor transparent;
+        animation: lds-dual-ring 1.2s linear infinite;
+      }
+      @keyframes lds-dual-ring {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body>
+    <%- include('nav')%>
+    <div class="container">
+      <% transactions.forEach(transaction => { %>
+      <div class="transaction-item">
+        <h3><%= transaction.name %></h3>
+        <p>Amount: <%= transaction.amount %></p>
+        <button
+          id="loginBtn"
+          class="approve-button"
+          onclick="handleAction('<%= transaction.transactionId %>', '<%= transaction.amount %>', 'approve')"
+        >
+          <div id="loading" class="lds-dual-ring" style="display: none"></div>
+          <span id="noloading">Approve</span>
+        </button>
+        <button
+          class="reject-button"
+          id="rejectBtn"
+          onclick="handleAction('<%= transaction.transactionId %>', '<%= transaction.amount %>', 'reject')"
+        >
+          <div id="loading" class="lds-dual-ring" style="display: none"></div>
+          <span id="noloading">Reject</span>
+        </button>
+      </div>
+      <% }); %>
+    </div>
+    <script>
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-right",
+        iconColor: "#014B92",
+        customClass: {
+          popup: "colored-toast",
+        },
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+      const Toast2 = Swal.mixin({
+        toast: true,
+        position: "top-right",
+        iconColor: "#014B92",
+        customClass: {
+          popup: "colored-toast",
+        },
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+      function handleAction(transactionId, amount, action) {
+        // Perform further actions based on the transactionId and action
+
+        // Construct the request body
+        const requestBody = {
+          transactionId: transactionId,
+          action: action,
+          amount: amount,
+        };
+
+        // Construct the fetch request
+        fetch("/dashboard/transactions/handletransaction", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.title == "success") {
+              return Toast.fire({
+                icon: "success",
+                title: "Transaction approved successfully",
+              }).then(() => {
+                window.location.reload();
+              });
+            }
+            if (data.title == "no transaction") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not find the transaction",
+              }).then(() => {
+                window.location.reload();
+              });
+            }
+            if (data.title == "update y save error") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not update or save rejection",
+              }).then(() => {
+                window.location.reload();
+              });
+            }
+            if (data.title == "reject") {
+              return Toast.fire({
+                icon: "success",
+                title: "Request successfully rejected",
+              }).then(() => {
+                window.location.reload();
+              });
+            }
+            if (data.title == "not found") {
+              return Toast.fire({
+                icon: "error",
+                title: "Transaction or user is not found",
+              }).then(() => {
+                window.location.reload();
+              });
+            }
+            if (data.title == "update error") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not update values",
+              }).then(() => {
+                window.location.reload();
+              });
+            }
+            if (data.title == "save error") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not save values",
+              }).then(() => {
+                window.location.reload();
+              });
+            }
+
+            // Handle successful response if needed
+          })
+          .catch((error) => {
+            console.error("Error handling transaction:", error);
+            // Handle error response if needed
+          });
+      }
+    </script>
+  </body>
+</html>

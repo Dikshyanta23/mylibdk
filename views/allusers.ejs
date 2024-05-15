@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <script>
+      function navigateTo(route) {
+        window.location.href = `/dashboard/${route}`;
+      }
+      function loadContent(contentName) {
+        // Load content based on the button clicked
+        fetch(`/dashboard/${contentName}`)
+          .then((response) => response.text())
+          .then((html) => {
+            document.getElementById("mainContent").innerHTML = html;
+          })
+          .catch((error) => {
+            console.error("Error loading content:", error);
+          });
+      }
+      function adminize(userEmail) {
+        fetch(`/dashboard/${userEmail}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ type: "admin" }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            // if (!response.ok) {
+            //   throw new Error("Network response was not ok");
+            // }
+            if (data.title === "success") {
+              window.location.reload();
+            } else if (data.title === "no user") {
+              console.log("No user found ");
+            } else {
+              console.log("Something went wrong");
+            }
+
+            // return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "There was a problem with your fetch operation.:",
+              error
+            );
+          });
+      }
+
+      function suspend(userEmail) {
+        fetch(`/dashboard/${userEmail}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ type: "suspend" }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            // if (!response.ok) {
+            //   throw new Error("Network response was not ok");
+            // }
+            if (data.title === "success") {
+              window.location.reload();
+            } else if (data.title === "no user") {
+              console.log("No user found ");
+            } else {
+              console.log("Something went wrong");
+            }
+
+            // return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "There was a problem with your fetch operation aya:",
+              error
+            );
+          });
+      }
+
+      function removeUser(userEmail) {
+        // Dummy functionality, replace with actual functionality
+        fetch(`/dashboard/${userEmail}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            // if (!response.ok) {
+            //   throw new Error("Network response was not ok");
+            // }
+            if (data.title === "success") {
+              window.location.reload();
+            } else if (data.title === "no user") {
+              console.log("No user found");
+            } else if (data.title === "error in user save") {
+              console.log("Could not save the user");
+            } else {
+              console.log("Something went wrong");
+            }
+
+            // return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "There was a problem with your fetch operation:",
+              error
+            );
+          });
+      }
+
+      function makeEdit(userEmail) {
+        window.location.href = `/dashboard/edit/${userEmail}`;
+      }
+    </script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+      }
+
+      .navbar {
+        background-color: #4caf50;
+        overflow: hidden;
+      }
+
+      .navbar a {
+        float: left;
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 20px;
+        text-decoration: none;
+        font-size: 18px;
+      }
+
+      .navbar a:hover {
+        background-color: #3e8e41;
+      }
+
+      .content {
+        padding: 20px;
+      }
+
+      h1 {
+        color: #4caf50;
+      }
+
+      .container {
+        width: 100%; /* Adjust the width as needed */
+        margin: 0 auto; /* Center the container horizontally */
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+
+      /* Define the card width for different screen sizes */
+      .card {
+        flex: 0 1 calc(30% - 20px); /* By default, 3 cards per row */
+        margin: 10px;
+        width: calc(30% - 20px); /* Reduce the width by 20% */
+        text-align: center; /* Center text within the card */
+        border-radius: 12px;
+      }
+
+      /* For screens smaller than 768px (tablet) */
+      @media (max-width: 768px) {
+        .card {
+          flex: 0 1 calc(50% - 20px); /* 2 cards per row */
+        }
+      }
+
+      /* For screens smaller than 480px (mobile) */
+      @media (max-width: 480px) {
+        .card {
+          flex: 0 1 calc(100% - 20px); /* 1 card per row */
+        }
+      }
+
+      .card {
+        background-color: #f0f8f0;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+      }
+
+      .card-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Arrange buttons in a 2 by 2 grid */
+        gap: 10px; /* Add gap between buttons */
+        margin-top: 10px;
+      }
+
+      .btn {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        color: #fff;
+        font-weight: bold;
+      }
+
+      .btn-make-admin {
+        background-color: #4caf50;
+      }
+
+      .btn-suspend {
+        background-color: #daa520;
+      }
+
+      .btn-edit {
+        background-color: grey;
+      }
+
+      .btn-remove {
+        background-color: #f44336;
+      }
+    </style>
+  </head>
+  <body>
+    <%- include('nav') %>
+    <div class="container">
+      <% if(users && users.length > 0) { %> <% users.forEach(user => { %>
+      <div class="card">
+        <% const {fullName, email, isAdmin, countryName, code, phone, suspended,
+        id} = user.dataValues %>
+        <h3><%= fullName %></h3>
+        <p>Email: <%= email %></p>
+        <p>Code: <%= code %></p>
+        <p>Phone: <%= phone %></p>
+        <p>Country: <%= countryName %></p>
+        <p>Role: <%= isAdmin? 'admin': 'user' %></p>
+        <div class="card-buttons">
+          <button class="btn btn-make-admin" onclick="adminize('<%= email %>')">
+            <%= isAdmin? 'Remove admin': 'Make admin' %>
+          </button>
+          <button class="btn btn-suspend" onclick="suspend('<%= email %>')">
+            <%= suspended? 'unsuspend': 'suspend' %>
+          </button>
+          <button class="btn btn-edit" onclick="makeEdit('<%= email %>')">
+            Edit
+          </button>
+          <button class="btn btn-remove" onclick="removeUser('<%= email %>')">
+            Remove
+          </button>
+        </div>
+      </div>
+      <% }); %> <% } else { %>
+      <p>No users found.</p>
+      <% } %>
+    </div>
+
+    <script></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+      document
+        .getElementById("logoutForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault(); // Prevent the default form submission
+          this.submit(); // Submit the form
+        });
+    </script>
+    <script>
+      function adminize(userEmail) {
+        fetch(`/dashboard/${userEmail}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ type: "admin" }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            // if (!response.ok) {
+            //   throw new Error("Network response was not ok");
+            // }
+            if (data.title === "success") {
+              window.location.reload();
+            } else if (data.title === "no user") {
+              console.log("No user found ");
+            } else {
+              console.log("Something went wrong");
+            }
+
+            // return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "There was a problem with your fetch operation.:",
+              error
+            );
+          });
+      }
+
+      function suspend(userEmail) {
+        fetch(`/dashboard/${userEmail}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ type: "suspend" }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            // if (!response.ok) {
+            //   throw new Error("Network response was not ok");
+            // }
+            if (data.title === "success") {
+              window.location.reload();
+            } else if (data.title === "no user") {
+              console.log("No user found ");
+            } else {
+              console.log("Something went wrong");
+            }
+
+            // return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "There was a problem with your fetch operation aya:",
+              error
+            );
+          });
+      }
+
+      function removeUser(userEmail) {
+        // Dummy functionality, replace with actual functionality
+        fetch(`/dashboard/${userEmail}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            // if (!response.ok) {
+            //   throw new Error("Network response was not ok");
+            // }
+            if (data.title === "success") {
+              window.location.reload();
+            } else if (data.title === "no user") {
+              console.log("No user found");
+            } else if (data.title === "error in user save") {
+              console.log("Could not save the user");
+            } else {
+              console.log("Something went wrong");
+            }
+
+            // return response.json();
+          })
+          .catch((error) => {
+            console.error(
+              "There was a problem with your fetch operation:",
+              error
+            );
+          });
+      }
+
+      function makeEdit(userEmail) {
+        window.location.href = `/dashboard/edit/${userEmail}`;
+      }
+    </script>
+  </body>
+</html>

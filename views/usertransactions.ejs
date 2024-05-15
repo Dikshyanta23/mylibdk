@@ -1,0 +1,271 @@
+<!-- views/login.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transactions</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+
+        height: 100vh;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin-top: 100px;
+      }
+
+      .form-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        width: 300px;
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      #loginBtn {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .lds-dual-ring,
+      .lds-dual-ring:after {
+        box-sizing: border-box;
+      }
+      .lds-dual-ring {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+      }
+      .lds-dual-ring:after {
+        content: " ";
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin: 2px;
+        border-radius: 50%;
+        border: 6.4px solid currentColor;
+        border-color: currentColor transparent currentColor transparent;
+        animation: lds-dual-ring 1.2s linear infinite;
+      }
+      @keyframes lds-dual-ring {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .eye-button {
+        position: relative;
+        display: flex;
+      }
+      .eye {
+        width: 50px;
+        background-color: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        position: absolute;
+        top: 5px;
+        right: 10px;
+      }
+      .eyehide {
+        width: 25px;
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+      .eyeshow {
+        width: 30px;
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+
+      #loginBtn:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+
+  <body>
+    <%- include('nav')%>
+    <div class="container">
+      <div class="form-container">
+        <h1>Add Balance</h1>
+        <form>
+          <div>
+            <label for="transaction">Amount:</label>
+            <input
+              type="number"
+              id="transaction"
+              name="transaction"
+              placeholder="2500"
+              style="border-radius: 4px; padding: 10px; width: 90%"
+            />
+          </div>
+          <button id="loginBtn" style="margin-top: 18px">
+            <div id="loading" class="lds-dual-ring" style="display: none"></div>
+            <span id="noloading">Login</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </body>
+  <script>
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    const Toast2 = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 4000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    $("#loginBtn").on("click", (e) => {
+      e.preventDefault();
+      $("#loading").hide();
+      $("#noloading").show();
+      $("#loginBtn").prop("disabled", true);
+      let transaction = $("#transaction").val();
+      if (transaction == "") {
+        $("#loginBtn").prop("disabled", true);
+        $("#loading").show();
+        $("#noloading").hide();
+        return Toast.fire({
+          text: "Please enter an amount",
+          icon: "error",
+        }).then(() => {
+          $("#loginBtn").prop("disabled", false);
+          $("#loading").hide();
+          $("#noloading").show();
+        });
+      }
+      return fetch("/dashboard/transactions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ transaction }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.title == "success") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "success",
+              title: "Your transaction is awaiting approval.",
+            }).then(() => {
+              window.location.href = `/dashboard/`;
+            });
+          }
+          if (data.title == "no transaction") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "error",
+              title: "Ensure all values are entered",
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "already exists") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast2.fire({
+              icon: "error",
+              title: `You already have a pending request`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "create error") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast2.fire({
+              icon: "error",
+              title: `Could not create entry in db`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+        });
+    });
+  </script>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messenger Section</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: row;
+        align-items: center; /* Align content horizontally in the center */
+        margin-top: 50px; /* Adjust as needed for vertical centering */
+      }
+
+      .messages-container {
+        width: 100%;
+        max-width: 600px; /* Limit messages container width */
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .message-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .message {
+        margin-bottom: 4px;
+        display: flex; /* Display message and details in a row */
+        align-items: center; /* Align items vertically */
+        cursor: pointer; /* Add pointer cursor to indicate clickable */
+      }
+
+      .message-details {
+        flex: 2; /* Take up 2/3 of the available width */
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-left: 4px; /* Add spacing between message and details */
+        p {
+          strong {
+            color: green;
+          }
+        }
+      }
+
+      .message-details.unread {
+        font-weight: normal;
+      }
+
+      .message-tab-container {
+        width: 100%;
+        max-width: calc(66.67% - 40px); /* 2/3 of container width */
+        padding: 20px;
+      }
+
+      .message-tab {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 20px;
+        height: 70vh;
+      }
+
+      .message-tab h2 {
+        margin-top: 0;
+      }
+
+      .message-tab p {
+        margin: 15px 0; /* Adjust spacing between items */
+      }
+      .message-tab p strong {
+        color: green;
+      }
+
+      .selected {
+        background-color: #e1e1e1; /* Highlight color for selected message */
+      }
+    </style>
+  </head>
+  <body>
+    <%- include('nav')%>
+    <h1 style="text-align: center">Messages</h1>
+    <div class="container">
+      <!-- Messages Section -->
+      <div class="messages-container">
+        <ul class="message-list">
+          <% allMessages.forEach((message, index) => { %>
+          <li
+            class="message <%= selectedMessage && selectedMessage.id === message.id ? 'selected' : ''%>"
+            onclick="selectMessage('<%= JSON.stringify(message) %>', '<%= index %>')"
+          >
+            <div
+              class="message-details <%= message.read === false ? 'unread' : '' %>"
+            >
+              <p><strong>Name:</strong> <%= message.name %></p>
+              <p><strong>Email:</strong> <%= message.email %></p>
+              <p><strong>Read:</strong> <%= message.read %></p>
+            </div>
+          </li>
+          <% }); %>
+        </ul>
+      </div>
+
+      <!-- Message Tab Section -->
+      <div class="message-tab-container" style="text-align: center">
+        <div class="message-tab" id="messageTab">
+          <h1 style="text-align: center; color: green; margin-bottom: 40px">
+            Message Tab
+          </h1>
+          <p>
+            <strong>Name:</strong> <%= selectedMessage ? selectedMessage.name :
+            '' %>
+          </p>
+          <p>
+            <strong>Email:</strong> <%= selectedMessage ? selectedMessage.email
+            : '' %>
+          </p>
+          <p>
+            <strong>Address:</strong> <%= selectedMessage ?
+            selectedMessage.adressone : '' %>
+          </p>
+          <p>
+            <strong>City:</strong> <%= selectedMessage ? selectedMessage.city :
+            '' %>
+          </p>
+          <p>
+            <strong>Message:</strong> <%= selectedMessage ?
+            selectedMessage.message : '' %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function selectMessage(messageData, index) {
+        const message = JSON.parse(messageData);
+        // Update selectedMessage with the clicked message
+        selectedMessage = message;
+        // Remove 'selected' class from all list items
+        const messageList = document.querySelectorAll(".message");
+        messageList.forEach((item) => item.classList.remove("selected"));
+        // Add 'selected' class to the clicked list item
+        messageList[index].classList.add("selected");
+        // Update message tab content
+        document.getElementById("messageTab").innerHTML = `
+        <h1 style="text-align: center; color: green; margin-bottom: 40px">
+            Message Tab
+          </h1>
+        <p><strong>Name:</strong> ${message.name}</p>
+        <p><strong>Email:</strong> ${message.email}</p>
+        <p><strong>Address:</strong> ${message.adressone}</p>
+        <p><strong>City:</strong> ${message.city}</p>
+        <p><strong>Message:</strong> ${message.message}</p>
+      `;
+      }
+    </script>
+  </body>
+</html>

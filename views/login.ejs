@@ -1,0 +1,359 @@
+<!-- views/login.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .form-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        width: 300px;
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      #loginBtn {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .lds-dual-ring,
+      .lds-dual-ring:after {
+        box-sizing: border-box;
+      }
+      .lds-dual-ring {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+      }
+      .lds-dual-ring:after {
+        content: " ";
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin: 2px;
+        border-radius: 50%;
+        border: 6.4px solid currentColor;
+        border-color: currentColor transparent currentColor transparent;
+        animation: lds-dual-ring 1.2s linear infinite;
+      }
+      @keyframes lds-dual-ring {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .eye-button {
+        position: relative;
+        display: flex;
+      }
+      .eye {
+        width: 50px;
+        background-color: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        position: absolute;
+        top: 5px;
+        right: 10px;
+      }
+      .eyehide {
+        width: 25px;
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+      .eyeshow {
+        width: 30px;
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+
+      #loginBtn:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="form-container">
+      <h1>Login</h1>
+      <form>
+        <div>
+          <label for="email">email:</label>
+          <input
+            type="text"
+            id="email"
+            name="email"
+            placeholder="example@gmail.com"
+          />
+        </div>
+        <div>
+          <label for="password">Password:</label>
+          <div class="eye-button">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="re-type password"
+            />
+            <button type="button" class="eye" onclick="switchicon()">
+              <img src="/images/eyehide.png" class="eyehide" alt="eyehide" />
+              <img
+                src="/images/eyeshow.jpg"
+                class="eyeshow"
+                alt="eyeshow"
+                style="display: none"
+              />
+            </button>
+          </div>
+        </div>
+        <button id="loginBtn">
+          <div id="loading" class="lds-dual-ring" style="display: none"></div>
+          <span id="noloading">Login</span>
+        </button>
+      </form>
+      <p>Don't have an account? <a href="/register">Register here</a>.</p>
+    </div>
+  </body>
+  <script>
+    function switchicon() {
+      const eyehide = document.querySelector(".eyehide");
+      const eyeshow = document.querySelector(".eyeshow");
+      const password = document.querySelector("#password");
+      if (password.type === "password") {
+        password.type = "text";
+        eyehide.style.display = "none";
+        eyeshow.style.display = "block";
+      } else {
+        password.type = "password";
+        eyehide.style.display = "block";
+        eyeshow.style.display = "none";
+      }
+    }
+
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    const Toast2 = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 4000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    $("#loginBtn").on("click", (e) => {
+      e.preventDefault();
+      $("#loading").hide();
+      $("#noloading").show();
+      $("#loginBtn").prop("disabled", true);
+      let email = $("#email").val();
+      let password = $("#password").val();
+      if (email == "") {
+        $("#loginBtn").prop("disabled", true);
+        $("#loading").show();
+        $("#noloading").hide();
+        return Toast.fire({
+          text: "Email is required !",
+          icon: "error",
+        }).then(() => {
+          $("#loginBtn").prop("disabled", false);
+          $("#loading").hide();
+          $("#noloading").show();
+        });
+      }
+      if (password == "") {
+        $("#loginBtn").prop("disabled", true);
+        $("#loading").show();
+        $("#noloading").hide();
+
+        return Toast.fire({
+          text: "Password is required !",
+          icon: "error",
+        }).then(() => {
+          $("#loginBtn").prop("disabled", false);
+        });
+      }
+      return fetch("/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.title == "success") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "success",
+              title: "Welcome back! You have successfully logged in.",
+            }).then(() => {
+              window.location.href = `/dashboard/`;
+            });
+          }
+          if (data.title == "no user") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Swal.fire({
+              title: "User doesn't exist ",
+              text: "Do you want to register ?",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#014B92",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Yes",
+            }).then((result) => {
+              if (result.isDismissed) {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              }
+              if (result.isConfirmed) {
+                location.href = `/register`;
+              }
+            });
+          }
+          if (data.title == "password") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "error",
+              title: "Incorrect Password !",
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "not verified") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast2.fire({
+              icon: "error",
+              title: `Your account is not verified`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "login error") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast2.fire({
+              icon: "error",
+              title: `There is an error while logging in.`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "suspended") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast2.fire({
+              icon: "error",
+              title: `You have been Suspended ! Please reach out to us via our Contact Form for further details.`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "error") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "error",
+              title: `There is an issue. Please check again later.!`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+        });
+    });
+  </script>
+</html>

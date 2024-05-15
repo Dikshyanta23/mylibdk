@@ -1,0 +1,99 @@
+<% const {fullName, email, isAdmin, countryName, code, phone} = user %>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  function navigateTo(route) {
+    window.location.href = `/dashboard/${route}`;
+  }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<style>
+  /* Navbar styling */
+  nav {
+    background-color: #4caf50;
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+  }
+
+  .navbar button {
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .navbar button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .navbar form {
+    margin: 0;
+  }
+
+  .navbar button[type="submit"] {
+    padding: 8px 16px;
+    border-radius: 4px;
+    background-color: #007bff;
+  }
+
+  .navbar button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+  .messageBtn {
+    position: relative;
+  }
+  .counter {
+    background-color: red;
+    padding: 4px 6px;
+    border-radius: 50%;
+    font-size: 12px;
+    position: absolute;
+    top: -12px;
+    right: -10px;
+  }
+</style>
+
+<nav>
+  <div class="navbar">
+    <button onclick="navigateTo('')">About</button>
+    <% if (isAdmin) { %>
+    <button onclick="navigateTo('addbook')">Add book</button>
+    <% } %>
+    <button onclick="navigateTo('allbooks')">All books</button>
+    <button onclick="navigateTo('mybooks')">My books</button>
+    <button onclick="navigateTo('transactions')">Transactions</button>
+
+    <% if (isAdmin) { %>
+    <button onclick="navigateTo('messages')" class="messageBtn">
+      Messages <% if (messages.length > 0) { %>
+      <span class="counter"><%= messages.length %></span>
+      <% } %>
+    </button>
+    <% } %> <% if (isAdmin) { %>
+    <button onclick="navigateTo('allusers')">Manage Users</button>
+    <% } %>
+
+    <form id="logoutForm" action="/logout/" method="POST">
+      <button type="submit">Logout</button>
+    </form>
+  </div>
+  <script>
+    document
+      .getElementById("logoutForm")
+      .addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent the default form submission
+        this.submit(); // Submit the form
+      });
+  </script>
+</nav>

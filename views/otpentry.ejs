@@ -1,0 +1,289 @@
+<!-- one_time_passcode.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>One Time Passcode</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 300px;
+        text-align: center;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #8bc34a; /* Light green */
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      input[type="submit"]:hover {
+        background-color: #689f38; /* Darker shade of green on hover */
+      }
+
+      .resend-link {
+        color: #007bff; /* Blue link color */
+        text-decoration: none;
+        margin-top: 10px;
+        display: inline-block;
+      }
+
+      .resend-link:hover {
+        text-decoration: underline;
+      }
+      #loginBtn {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .lds-dual-ring,
+      .lds-dual-ring:after {
+        box-sizing: border-box;
+      }
+      .lds-dual-ring {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+      }
+      .lds-dual-ring:after {
+        content: " ";
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin: 2px;
+        border-radius: 50%;
+        border: 6.4px solid currentColor;
+        border-color: currentColor transparent currentColor transparent;
+        animation: lds-dual-ring 1.2s linear infinite;
+      }
+      @keyframes lds-dual-ring {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Enter One Time Passcode</h2>
+      <form>
+        <input
+          type="text"
+          name="passcode"
+          placeholder="Enter passcode"
+          id="passcode"
+        />
+        <button id="loginBtn">
+          <div id="loading" class="lds-dual-ring" style="display: none"></div>
+          <span id="noloading">Submit</span>
+        </button>
+      </form>
+      <button id="resetBtn" class="resend-link">Resend code</button>
+    </div>
+  </body>
+  <script>
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    const Toast2 = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 4000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    $("#loginBtn").on("click", (e) => {
+      e.preventDefault();
+      $("#loading").hide();
+      $("#noloading").show();
+      $("#loginBtn").prop("disabled", true);
+      let passcode = $("#passcode").val();
+      if (passcode == "") {
+        $("#loginBtn").prop("disabled", true);
+        $("#loading").show();
+        $("#noloading").hide();
+        return Toast.fire({
+          text: "Passcode is required",
+          icon: "error",
+        }).then(() => {
+          $("#loginBtn").prop("disabled", false);
+          $("#loading").hide();
+          $("#noloading").show();
+        });
+      }
+      return fetch("/otpentry", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: passcode }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.title == "success") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "success",
+              title: "Welcome back! You can now login 2.",
+            }).then(() => {
+              window.location.href = `/login`;
+            });
+          }
+          if (data.title == "error") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "error",
+              title: `There is an issue. Please check again later.!`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "incorrect code") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "error",
+              title: `Sorry, the code you entered is incorrect`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "timeout") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "error",
+              title: `You have crossed the time limit.`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "save error") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "error",
+              title: `Could not save the user`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+        });
+    });
+    $("#resetBtn").on("click", (e) => {
+      e.preventDefault();
+      return fetch("/resend", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.title == "success") {
+            return Toast.fire({
+              icon: "success",
+              title: "OTP has been re-sent.",
+            }).then(() => {
+              $("#resetBtn").prop("disabled", true);
+              setTimeout(() => {
+                $("#resetBtn").prop("disabled", false);
+              }, 15000);
+            });
+          }
+          if (data.title == "mail error") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "error",
+              title: `Could not send you an email`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+        });
+    });
+  </script>
+</html>

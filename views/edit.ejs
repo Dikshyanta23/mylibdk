@@ -1,0 +1,138 @@
+<!-- form.ejs -->
+<% const {fullName, email, isAdmin, countryName, code, phone, suspended, id} =
+user.dataValues || {} %>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Form</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .form-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 400px;
+      }
+
+      .form-container input[type="text"],
+      .form-container input[type="email"],
+      .form-container input[type="password"],
+      .form-container input[type="number"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      .form-container input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #4caf50;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .form-container input[type="submit"]:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form-container">
+      <h2>Registration Form</h2>
+      <form id="registrationForm">
+        <label for="fullName">Name: </label>
+        <input
+          type="text"
+          id="fullName"
+          name="fullName"
+          value="<%= fullName %>"
+        />
+
+        <label for="email">Email: </label>
+        <input type="email" id="email" name="email" value="<%= email %>" />
+
+        <label for="phone">Phone:</label>
+        <input type="tel" id="phone" name="phone" value="<%= phone %>" />
+
+        <label for="suspended">Suspended:</label>
+        <input type="checkbox" id="suspended" name="suspended" />
+
+        <button type="submit" id="submitBtn" style="margin-top: 10px">
+          Submit
+        </button>
+      </form>
+    </div>
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    const form = document.getElementById("registrationForm");
+    $("#submitBtn").on("click", (e) => {
+      e.preventDefault(); // Prevent the default form submission
+
+      const formData = new FormData(form);
+
+      fetch(`/dashboard/edit/<%=email %>`, {
+        method: "PUT", // Change the method to POST
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(Object.fromEntries(formData.entries())),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(() => {
+          return Toast.fire({
+            icon: "success",
+            title: "Details updated",
+          }).then(() => {
+            location.href = `/dashboard/newallusers`;
+          });
+        })
+        .catch((error) => {
+          console.error(
+            "There was a problem with your fetch operation:",
+            error
+          );
+        });
+    });
+  </script>
+</html>

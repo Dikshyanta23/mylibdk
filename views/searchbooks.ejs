@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Catalog</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        text-align: center;
+      }
+
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+
+      .card {
+        width: calc(
+          33.33% - 20px
+        ); /* By default, three cards per row with space between */
+        margin-bottom: 20px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+      }
+
+      .card img {
+        width: 100%;
+        height: 450px;
+        border-radius: 5px;
+        margin-bottom: 15px; /* Increased margin to provide space between image and text */
+      }
+
+      /* Button styles */
+      .btn-container {
+        display: flex;
+        justify-content: space-between; /* Buttons evenly spaced */
+        margin-top: 15px; /* Add margin between text and buttons */
+      }
+
+      .btn {
+        width: calc(
+          50% - 5px
+        ); /* Adjust button width to be half of the container */
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .edit-btn {
+        background-color: green;
+      }
+      .borrow-btn {
+        background-color: gray;
+      }
+
+      .delete-btn {
+        background-color: #f44336;
+      }
+
+      .card p strong {
+        color: green;
+      }
+
+      @media screen and (max-width: 768px) {
+        .card {
+          width: calc(
+            50% - 20px
+          ); /* Two cards per row with space between on smaller screens */
+        }
+      }
+
+      @media screen and (max-width: 480px) {
+        .card {
+          width: 100%; /* Single card per row on smallest screens */
+        }
+      }
+      .search-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding: 0 40px;
+      }
+
+      .search-bar {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-right: 10px;
+        flex-grow: 1; /* Allow the input to grow to fill available space */
+      }
+
+      .submit-button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      label {
+        margin-left: 20px;
+      }
+
+      input[type="checkbox"] {
+        margin-right: 5px;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <%- include('nav') %> <% const {isAdmin} = user.dataValues || 'false'%>
+    <h1>Book Catalog</h1>
+    <div class="search-container">
+      <input type="text" placeholder="Search" class="search-bar" />
+      <button class="submit-button" onclick="handleSearch()">Submit</button>
+      <label
+        ><input type="checkbox" onclick="handleCheckbox(this)" checked />
+        All</label
+      >
+      <label
+        ><input type="checkbox" onclick="handleCheckbox(this)" /> Name</label
+      >
+      <label
+        ><input type="checkbox" onclick="handleCheckbox(this)" /> Author</label
+      >
+    </div>
+    <div class="container">
+      <% books.forEach(book => { %>
+      <div class="card">
+        <img src="<%= book.photo %>" alt="<%= book.name %>" />
+        <h2><%= book.name %></h2>
+        <p><strong>Author:</strong> <%= book.author %></p>
+        <p><strong>Genre:</strong> <%= book.genre %></p>
+        <p><strong>Published Year:</strong> <%= book.publishedYear %></p>
+        <p><strong>Price per day:</strong> <%= book.price %></p>
+        <p><strong>Fine per day (14+ days):</strong> $<%= book.fine %></p>
+        <p><strong>Stock:</strong> <%= book.stock %></p>
+        <% if (isAdmin) { %>
+        <div class="btn-container" style="margin-bottom: 10px">
+          <button
+            class="btn edit-btn"
+            id="editBtn"
+            onclick="editBook('<%= book.id %>')"
+          >
+            <div id="loading" class="lds-dual-ring" style="display: none"></div>
+            <span id="noloading">Edit</span>
+          </button>
+          <button
+            class="btn delete-btn"
+            id="deleteBtn"
+            onclick="deleteBook('<%= book.id %>')"
+          >
+            <div id="loading" class="lds-dual-ring" style="display: none"></div>
+            <span id="noloading">Delete</span>
+          </button>
+        </div>
+        <% } %>
+        <button
+          class="btn borrow-btn"
+          id="editBtn"
+          onclick="borrowBook('<%= book.id %>')"
+        >
+          <div id="loading" class="lds-dual-ring" style="display: none"></div>
+          <span id="noloading">Borrow</span>
+        </button>
+        <!-- Buttons -->
+      </div>
+      <% }) %>
+    </div>
+  </body>
+  <script>
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    const Toast2 = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 4000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    const deleteBtn = document.getElementById("deleteBtn");
+    const editBtn = document.getElementById("editBtn");
+
+    function editBook(id) {
+      return (window.location.href = `/dashboard/allbooks/editbook/${id}`);
+    }
+    function deleteBook(id) {
+      return fetch(`/dashboard/allbooks/${id}`, {
+        method: "DELETE",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.title == "success") {
+            return Toast.fire({
+              icon: "success",
+              title: "Book deleted successfully.",
+            }).then(() => {
+              window.location.reload();
+            });
+          }
+          if (data.title == "delete error") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not delete thebook",
+            });
+          }
+          if (data.title == "save error") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not save delete operation",
+            });
+          }
+
+          if (data.title == "not found") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not find the book",
+            });
+          }
+        });
+    }
+    function borrowBook(id) {
+      return fetch(`/dashboard/allbooks/${id}`, {
+        method: "POST",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.title == "success") {
+            return Toast.fire({
+              icon: "success",
+              title: "Book borrowed sucessfully.",
+            }).then(() => {
+              window.location.reload();
+            });
+          }
+          if (data.title == "max limit") {
+            return Toast.fire({
+              icon: "error",
+              title: "Can't borrow more than 3 books",
+            }).then(() => {
+              // window.location.reload();
+            });
+          }
+          if (data.title == "insufficient balance") {
+            return Toast.fire({
+              icon: "error",
+              title: "Insufficient balance to borrow the book",
+            }).then(() => {
+              // window.location.reload();
+            });
+          }
+          if (data.title == "wait max limit") {
+            return Toast.fire({
+              icon: "error",
+              title: "Your waitlist is full",
+            }).then(() => {
+              // window.location.reload();
+            });
+          }
+          if (data.title == "pre waited") {
+            return Toast.fire({
+              icon: "error",
+              title: "Well let you know when the book is available",
+            }).then(() => {
+              // window.location.reload();
+            });
+          }
+          if (data.title == "out of stock") {
+            return Toast.fire({
+              icon: "success",
+              title: "Book is out of stock. We will email when we get it back",
+            }).then(() => {
+              // window.location.reload();
+            });
+          }
+          if (data.title == "save error") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not save the changes",
+            });
+          }
+          if (data.title == "update error") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not update the book",
+            });
+          }
+          if (data.title == "not found") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not find the book",
+            });
+          }
+          if (data.title == "pre owned") {
+            return Toast.fire({
+              icon: "error",
+              title: "Book already borrowed",
+            });
+          }
+        });
+    }
+
+    function handleSearch() {
+      const searchTerm = document.querySelector(".search-bar").value;
+      var label = "All";
+      const checkedCheckbox = document.querySelector(
+        'input[type="checkbox"]:checked'
+      );
+      if (checkedCheckbox) {
+        label = checkedCheckbox.parentElement.textContent.trim();
+      }
+
+      // Using Axios for the fetch request
+      axios
+        .get(`/dashboard/allbooks/search/${searchTerm}/${label}`, {})
+        .then((response) => reponse.json())
+        .then((data) => {
+          if (data.title == "no books") {
+            return Toast2.fire({
+              icon: "error",
+              title: "Could not find the books according to your search",
+            });
+          }
+          if (data.title == "missing values") {
+            return Toast2.fire({
+              icon: "error",
+              title: "Please ensure that all values are chosen",
+            });
+          }
+          if (data.title == "success") {
+            return Toast2.fire({
+              icon: "success",
+              title: "Taking you to your search results",
+            }).then(() => {
+              window.location.href = `/dashboard/allbooks/search/`;
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Error searching:", error);
+          // Handle error response if needed
+        });
+    }
+    function handleCheckbox(clickedCheckbox) {
+      // If the clicked checkbox is checked
+      if (clickedCheckbox.checked) {
+        // Uncheck all other checkboxes
+        const checkboxes = document.querySelectorAll(
+          '.search-container input[type="checkbox"]'
+        );
+        checkboxes.forEach((checkbox) => {
+          if (checkbox !== clickedCheckbox) {
+            checkbox.checked = false;
+          }
+        });
+      }
+    }
+  </script>
+</html>

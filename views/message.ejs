@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Form</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f0f0f0;
+      }
+      .container {
+        width: 400px;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #008000; /* Light green color */
+        text-align: center;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+      }
+      label {
+        margin-bottom: 5px;
+      }
+      input,
+      textarea {
+        margin-bottom: 10px;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+      button {
+        background-color: #008000; /* Light green color */
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .button-container {
+        display: flex;
+        justify-content: center;
+      }
+      #loginBtn {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .lds-dual-ring,
+      .lds-dual-ring:after {
+        box-sizing: border-box;
+      }
+      .lds-dual-ring {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+      }
+      .lds-dual-ring:after {
+        content: " ";
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin: 2px;
+        border-radius: 50%;
+        border: 6.4px solid currentColor;
+        border-color: currentColor transparent currentColor transparent;
+        animation: lds-dual-ring 1.2s linear infinite;
+      }
+      @keyframes lds-dual-ring {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Contact Us</h1>
+      <form id="form">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" />
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" />
+
+        <label for="address1">Address:</label>
+        <input type="text" id="address1" name="address1" />
+
+        <label for="city">City:</label>
+        <input type="text" id="city" name="city" />
+
+        <label for="message">Message:</label>
+        <textarea id="message" name="message" rows="5"></textarea>
+      </form>
+      <button id="loginBtn">
+        <div id="loading" class="lds-dual-ring" style="display: none"></div>
+        <span id="noloading">Login</span>
+      </button>
+    </div>
+    <script>
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-right",
+        iconColor: "#014B92",
+        customClass: {
+          popup: "colored-toast",
+        },
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+      const Toast2 = Swal.mixin({
+        toast: true,
+        position: "top-right",
+        iconColor: "#014B92",
+        customClass: {
+          popup: "colored-toast",
+        },
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+      const form = document.getElementById("form");
+      $("#loginBtn").on("click", (e) => {
+        console.log("yo");
+        const formData = new FormData(form);
+        e.preventDefault();
+        $("#loading").hide();
+        $("#noloading").show();
+        $("#loginBtn").prop("disabled", true);
+        let email = $("#email").val();
+        let name = $("#name").val();
+        let address1 = $("#address1").val();
+        let city = $("#city").val();
+        let message = $("#message").val();
+        if (
+          email == "" ||
+          name == "" ||
+          address1 == "" ||
+          city == "" ||
+          message == ""
+        ) {
+          $("#loginBtn").prop("disabled", true);
+          $("#loading").show();
+          $("#noloading").hide();
+          return Toast.fire({
+            text: "All fields are required !",
+            icon: "error",
+          }).then(() => {
+            $("#loginBtn").prop("disabled", false);
+            $("#loading").hide();
+            $("#noloading").show();
+          });
+        }
+        return fetch("/message", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(Object.fromEntries(formData.entries())),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.title == "success") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast.fire({
+                icon: "success",
+                title: "Message succesfully saved",
+              }).then(() => {
+                window.location.reload();
+              });
+            }
+            if (data.title == "create error") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast.fire({
+                icon: "error",
+                title: "Could not create message",
+              }).then(() => {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            if (data.title == "save error") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast2.fire({
+                icon: "error",
+                title: `Could not save message`,
+              }).then(() => {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            if (data.title == "missing fields") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast2.fire({
+                icon: "error",
+                title: `Values are missing`,
+              }).then(() => {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+          });
+      });
+    </script>
+  </body>
+</html>

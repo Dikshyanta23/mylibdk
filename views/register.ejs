@@ -1,0 +1,341 @@
+<!-- views/register.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .form-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        width: 800px;
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      button[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #28a745;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      button[type="submit"]:hover {
+        background-color: #218838;
+      }
+      .lds-dual-ring,
+      .lds-dual-ring:after {
+        box-sizing: border-box;
+      }
+      .lds-dual-ring {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+      }
+      #loginBtn {
+        width: 100%;
+        padding: 10px;
+        background-color: #218838;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .lds-dual-ring:after {
+        content: " ";
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin: 2px;
+        border-radius: 50%;
+        border: 6.4px solid currentColor;
+        border-color: currentColor transparent currentColor transparent;
+        animation: lds-dual-ring 1.2s linear infinite;
+      }
+      @keyframes lds-dual-ring {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      p {
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="form-container">
+      <h1>Register</h1>
+      <form action="/register" method="POST" id="myForm">
+        <div>
+          <label for="name">Full Name:</label>
+          <input type="text" id="fullName" name="fullName" value="sandeep" />
+        </div>
+        <div>
+          <label for="code">Country Code:</label>
+          <input type="text" id="code" name="code" value="+977" />
+        </div>
+        <div>
+          <label for="countryName">Country Name:</label>
+          <input
+            type="text"
+            id="countryName"
+            name="countryName"
+            value="Nepal"
+          />
+        </div>
+        <div>
+          <label for="phone">Phone Number:</label>
+          <input type="number" id="phone" name="phone" value="9841414125" />
+        </div>
+        <div>
+          <label for="email">Email:</label>
+          <input type="text" id="email" name="email" />
+        </div>
+        <span id="email-span"></span>
+        <div>
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" />
+        </div>
+        <button id="loginBtn">
+          <div id="loading" class="lds-dual-ring" style="display: none"></div>
+          <span id="noloading">Login</span>
+        </button>
+      </form>
+      <p>Already have an account? <a href="/login">Login here</a>.</p>
+      <!-- Bootstrap Toast -->
+      <div
+        class="toast toast-custom"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        data-delay="3000"
+      >
+        <div class="toast-header">
+          <strong class="mr-auto"
+            ><span id="notification">Toast Notification</span></strong
+          >
+          <button
+            type="button"
+            class="ml-2 mb-1 close"
+            data-dismiss="toast"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+
+            <!-- Bootstrap JS and jQuery -->
+            <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+            <!-- Script to show the toast -->
+            <script>
+              const Toast = Swal.mixin({
+                toast: true,
+                position: "top-right",
+                iconColor: "#014B92",
+                customClass: {
+                  popup: "colored-toast",
+                },
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                  toast.addEventListener("mouseenter", Swal.stopTimer);
+                  toast.addEventListener("mouseleave", Swal.resumeTimer);
+                },
+              });
+              const Toast2 = Swal.mixin({
+                toast: true,
+                position: "top-right",
+                iconColor: "#014B92",
+                customClass: {
+                  popup: "colored-toast",
+                },
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                  toast.addEventListener("mouseenter", Swal.stopTimer);
+                  toast.addEventListener("mouseleave", Swal.resumeTimer);
+                },
+              });
+              $("#loginBtn").on("click", (e) => {
+                e.preventDefault();
+                $("#loading").hide();
+                $("#noloading").show();
+                $("#loginBtn").prop("disabled", true);
+
+                let email = $("#email").val();
+                let password = $("#password").val();
+                let fullName = $("#fullName").val();
+                let code = $("#code").val();
+                let countryName = $("#countryName").val();
+                let phone = $("#phone").val();
+
+                if (email == "") {
+                  $("#loginBtn").prop("disabled", true);
+                  $("#loading").show();
+                  $("#noloading").hide();
+                  return Toast.fire({
+                    text: "Email is required !",
+                    icon: "error",
+                  }).then(() => {
+                    $("#loginBtn").prop("disabled", false);
+                    $("#loading").hide();
+                    $("#noloading").show();
+                  });
+                }
+                if (password == "") {
+                  $("#loginBtn").prop("disabled", true);
+                  $("#loading").show();
+                  $("#noloading").hide();
+
+                  return Toast.fire({
+                    text: "Password is required !",
+                    icon: "error",
+                  }).then(() => {
+                    $("#loginBtn").prop("disabled", false);
+                  });
+                }
+                return fetch("/register", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    email,
+                    password,
+                    phone,
+                    fullName,
+                    code,
+                    countryName,
+                  }),
+                })
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (data.title == "success") {
+                      $("#loginBtn").prop("disabled", true);
+                      $("#loading").show();
+                      $("#noloading").hide();
+                      return Toast.fire({
+                        icon: "success",
+                        title: "Thank you for providing your values",
+                      }).then(() => {
+                        location.href = `/otpentry/`;
+                      });
+                    }
+                    if (data.title == "user exists") {
+                      $("#loginBtn").prop("disabled", true);
+                      $("#loading").show();
+                      $("#noloading").hide();
+                      return Toast.fire({
+                        icon: "error",
+                        title: `User already exists`,
+                      }).then(() => {
+                        $("#loginBtn").prop("disabled", false);
+                        $("#loading").hide();
+                        $("#noloading").show();
+                      });
+                    }
+
+                    if (data.title == "fullname error") {
+                      $("#loginBtn").prop("disabled", true);
+                      $("#loading").show();
+                      $("#noloading").hide();
+                      return Toast.fire({
+                        icon: "error",
+                        title: `Please enter your full name`,
+                      }).then(() => {
+                        $("#loginBtn").prop("disabled", false);
+                        $("#loading").hide();
+                        $("#noloading").show();
+                      });
+                    }
+                    if (data.title == "invalid email") {
+                      $("#loginBtn").prop("disabled", true);
+                      $("#loading").show();
+                      $("#noloading").hide();
+                      return Toast.fire({
+                        icon: "error",
+                        title: `Please enter a valid email`,
+                      }).then(() => {
+                        $("#loginBtn").prop("disabled", false);
+                        $("#loading").hide();
+                        $("#noloading").show();
+                      });
+                    }
+                  });
+
+                if (data.title == "error") {
+                  $("#loginBtn").prop("disabled", true);
+                  $("#loading").show();
+                  $("#noloading").hide();
+                  return Toast.fire({
+                    icon: "error",
+                    title: `There is an issue. Please check again later.!`,
+                  }).then(() => {
+                    $("#loginBtn").prop("disabled", false);
+                    $("#loading").hide();
+                    $("#noloading").show();
+                  });
+                }
+              });
+            </script>
+          </button>
+        </div>
+        <div class="toast-body"></div>
+      </div>
+    </div>
+  </body>
+</html>
