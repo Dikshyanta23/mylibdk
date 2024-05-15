@@ -54,7 +54,7 @@ router.post("/login", notAuthenticated, async (req, res) => {
   }
   bcrypt.compare(password, user.password, (err, result) => {
     if (err) {
-      return res.json({ title: "password" });
+      return res.json({ title: "password err" });
     }
 
     if (!result) {

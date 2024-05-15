@@ -1,7 +1,7 @@
 const express = require("express");
 const { isAdmin } = require("../config/authentication");
 const router = express.Router();
-const { User, Book, Message, Transaction } = require("../models");
+const { User, Book, Message, Transaction, Rate } = require("../models");
 const { requireAuth } = require("../config/authentication");
 const upload = require("../config/multer");
 const user = require("../models/user");
@@ -39,6 +39,7 @@ router.get("/allbooks", requireAuth, async (req, res) => {
     books: allBooks,
     messages: messages,
     user: req.user,
+    searchTerm: "",
   });
 });
 
@@ -46,8 +47,17 @@ router.get("/search", async (req, res) => {
   const searchTerm = req.query.searchTerm;
   console.log(searchTerm);
   const messages = await Message.findAll({ where: { read: false } });
+  const books = await Book.findAll({});
 
   try {
+    if (searchTerm == "") {
+      return res.render("allbooks", {
+        books: books,
+        messages: messages,
+        user: req.user,
+        searchTerm: searchTerm,
+      });
+    }
     const filteredBooks = await Book.findAll({
       where: {
         deleted_at: null,
@@ -74,10 +84,11 @@ router.get("/search", async (req, res) => {
     });
     console.log(filteredBooks);
     // res.redirect("/message");
-    return res.render("allbooks.ejs", {
+    return res.render("allbooks", {
       books: filteredBooks,
       messages: messages,
       user: req.user,
+      searchTerm: searchTerm,
     });
   } catch (error) {
     console.error("Error:", error);
@@ -236,6 +247,83 @@ router.get(
     return res.render("editbook", { book: book });
   }
 );
+
+router.get("/allbooks/reviewbook/:bookId", requireAuth, async (req, res) => {
+  const { bookId } = req.params;
+  const book = await Book.findOne({ where: { id: bookId } });
+  const messages = await Message.findAll({ where: { read: false } });
+
+  if (!book) {
+    return res.json({ title: "not found" });
+  }
+  return res.render("review", {
+    book: book,
+    user: req.user,
+    messages: messages,
+  });
+});
+
+router.post("/allbooks/reviewbook", requireAuth, async (req, res) => {
+  console.log("chiryo");
+
+  const { review, rating, bookId } = req.body;
+
+  if (!bookId) {
+    return res.json({ title: "not found" });
+  }
+
+  if (!review && !rating) {
+    return res.json({ title: "missing values" });
+  }
+
+  if (review && rating) {
+    const review = await Rate.create({
+      isReview: true,
+      bookId,
+      userId: req.user.id,
+      value: review,
+    });
+
+    const rate = await Rate.create({
+      isReview: false,
+      bookId,
+      userId: req.user.id,
+      value: rating.toString(),
+    });
+
+    if (!review || !rate) {
+      return res.json({ title: "create error" });
+    }
+
+    return res.json({ title: "success" });
+  } else if (review) {
+    const review = await Rate.create({
+      isReview: true,
+      bookId,
+      userId: req.user.id,
+      value: review,
+    });
+
+    if (!review) {
+      return res.json({ title: "create error" });
+    }
+
+    return res.json({ title: "success" });
+  } else {
+    const rate = await Rate.create({
+      isReview: false,
+      bookId,
+      userId: req.user.id,
+      value: rating.toString(),
+    });
+
+    if (!rate) {
+      return res.json({ title: "create error" });
+    }
+
+    return res.json({ title: "success" });
+  }
+});
 
 router.put("/allbooks/editbook/", requireAuth, isAdmin, async (req, res) => {
   const { id, name, price, stock, fine, author, genre, publishedyear } =
