@@ -19,6 +19,11 @@ module.exports = {
       allowNull: false,
       defaultValue: "fiction",
     });
+    await queryInterface.addColumn("books", "author", {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: "scott",
+    });
   },
 
   async down(queryInterface, Sequelize) {

@@ -340,13 +340,16 @@
         });
       }
 
+      window.location.href = `/dashboard/search?searchTerm=${searchTerm}`;
       // Using Axios for the fetch request
-      return fetch(`/dashboard/search?searchTerm=${searchTerm}`).catch(
-        (error) => {
-          console.error("Error searching:", error);
-          // Handle error response if needed
-        }
-      );
+      // return fetch(`/dashboard/search?searchTerm=${searchTerm}`)
+      //   .then(() => {
+      //     console.log("done");
+      //   })
+      //   .catch((error) => {
+      //     console.error("Error searching:", error);
+      //     // Handle error response if needed
+      //   });
     }
   </script>
 </html>

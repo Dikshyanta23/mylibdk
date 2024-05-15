@@ -74,8 +74,8 @@ router.get("/search", async (req, res) => {
     });
     console.log(filteredBooks);
     // res.redirect("/message");
-    return res.render("about", {
-      // books: filteredBooks,
+    return res.render("allbooks.ejs", {
+      books: filteredBooks,
       messages: messages,
       user: req.user,
     });
