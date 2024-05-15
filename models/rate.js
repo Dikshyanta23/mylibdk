@@ -8,11 +8,11 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Rate.belongsTo(models.User, {
         foreignKey: "user_id",
-        as: "RateUser",
+        as: "rateUser",
       });
       Rate.belongsTo(models.Book, {
         foreignKey: "book_id",
-        as: "RateBook",
+        as: "rateBook",
       });
     }
   }
@@ -25,17 +25,31 @@ module.exports = (sequelize, DataTypes) => {
       },
       isReview: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false,
         allowNull: false,
+        defaultValue: false,
       },
-
       userId: {
         type: DataTypes.UUID,
         allowNull: false,
+        // references: {
+        //   model: "User",
+        //   key: "id",
+        // },
+        // onDelete: "CASCADE",
       },
       bookId: {
         type: DataTypes.UUID,
         allowNull: false,
+        // references: {
+        //   model: "User",
+        //   key: "id",
+        // },
+        // onDelete: "CASCADE",
+      },
+      value: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "Hello",
       },
     },
 
