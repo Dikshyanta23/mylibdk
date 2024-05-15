@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Review Form</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+      }
+      .container {
+        width: 100%;
+        display: grid;
+        place-items: center;
+        margin-top: 50px;
+      }
+      .form-container {
+        text-align: center;
+        max-width: 400px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f0f8f0;
+      }
+
+      .star-rating {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+
+      .star-rating input[type="radio"] {
+        display: none;
+      }
+
+      .star-rating label {
+        font-size: 30px;
+        color: #ccc;
+        cursor: pointer;
+      }
+
+      .star-rating input[type="radio"]:checked ~ label,
+      .star-rating input[type="radio"]:checked ~ label:before {
+        color: #ffd700; /* Gold color for selected stars */
+      }
+
+      .review-input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+      }
+
+      .submit-button {
+        background-color: #4caf50; /* Green color for submit button */
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .submit-button:hover {
+        background-color: #45a049; /* Darker green color on hover */
+      }
+      #loginBtn {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .lds-dual-ring,
+      .lds-dual-ring:after {
+        box-sizing: border-box;
+      }
+      .lds-dual-ring {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+      }
+      .lds-dual-ring:after {
+        content: " ";
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin: 2px;
+        border-radius: 50%;
+        border: 6.4px solid currentColor;
+        border-color: currentColor transparent currentColor transparent;
+        animation: lds-dual-ring 1.2s linear infinite;
+      }
+      @keyframes lds-dual-ring {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body>
+    <%- include('nav')%>
+    <div class="container">
+      <div class="form-container">
+        <h2>Write a Review</h2>
+        <form>
+          <div class="star-rating">
+            <input type="radio" id="star5" name="rating" value="5" />
+            <label for="star5">★</label>
+            <input type="radio" id="star4" name="rating" value="4" />
+            <label for="star4">★</label>
+            <input type="radio" id="star3" name="rating" value="3" />
+            <label for="star3">★</label>
+            <input type="radio" id="star2" name="rating" value="2" />
+            <label for="star2">★</label>
+            <input type="radio" id="star1" name="rating" value="1" />
+            <label for="star1">★</label>
+          </div>
+          <input
+            type="text"
+            name="review"
+            placeholder="Write your review..."
+            class="review-input"
+            id="reveiwed"
+          />
+          <button id="loginBtn">
+            <div id="loading" class="lds-dual-ring" style="display: none"></div>
+            <span id="noloading">Submit</span>
+          </button>
+        </form>
+      </div>
+    </div>
+    <script>
+      function isRatingGiven() {
+        // Get all radio buttons with the name "rating"
+        const ratingRadios = document.querySelectorAll('input[name="rating"]');
+
+        // Loop through each radio button
+        for (let i = 0; i < ratingRadios.length; i++) {
+          // If a radio button is checked, return true
+          if (ratingRadios[i].checked) {
+            return true;
+          }
+        }
+        // If no radio button is checked, return false
+        return false;
+      }
+      function getRatingValue() {
+        // Get the checked radio button with the name "rating"
+        const checkedRating = document.querySelector(
+          'input[name="rating"]:checked'
+        );
+
+        // If a radio button is checked, return its value
+        if (checkedRating) {
+          return checkedRating.value;
+        } else {
+          // If no radio button is checked, return null or handle accordingly
+          return null;
+        }
+      }
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-right",
+        iconColor: "#014B92",
+        customClass: {
+          popup: "colored-toast",
+        },
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+      const Toast2 = Swal.mixin({
+        toast: true,
+        position: "top-right",
+        iconColor: "#014B92",
+        customClass: {
+          popup: "colored-toast",
+        },
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+      const match = window.location.href.match(/\/reviewbook\/([^\/]+)/);
+      const bookId = match ? match[1] : null;
+      $("#loginBtn").on("click", (e) => {
+        e.preventDefault();
+        $("#loading").hide();
+        $("#noloading").show();
+        $("#loginBtn").prop("disabled", true);
+        let review = $("#reveiwed").val();
+        if (!isRatingGiven() && !review) {
+          $("#loginBtn").prop("disabled", true);
+          $("#loading").show();
+          $("#noloading").hide();
+          return Toast.fire({
+            text: "Enter at least a rating or a review",
+            icon: "error",
+          }).then(() => {
+            $("#loginBtn").prop("disabled", false);
+            $("#loading").hide();
+            $("#noloading").show();
+          });
+        }
+
+        return fetch("/dashboard/allbooks/reviewbook", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ review, rating: getRatingValue(), bookId }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.title == "success") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast.fire({
+                icon: "success",
+                title: "Successfully reviewed/rated the book",
+              }).then(() => {
+                window.location.href = `/dashboard/`;
+              });
+            }
+
+            if (data.title == "create error") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast.fire({
+                icon: "error",
+                title: "Could not create values in db",
+              }).then(() => {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            if (data.title == "not found") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast2.fire({
+                icon: "error",
+                title: `Could not find the book`,
+              }).then(() => {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            if (data.title == "missing values") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast2.fire({
+                icon: "error",
+                title: `Enter either values.`,
+              }).then(() => {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+          });
+      });
+    </script>
+  </body>
+</html>

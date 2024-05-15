@@ -64,7 +64,9 @@
       .borrow-btn {
         background-color: gray;
       }
-
+      .review-btn {
+        background-color: #daa520;
+      }
       .delete-btn {
         background-color: #f44336;
       }
@@ -131,11 +133,14 @@
     <%- include('nav') %> <% const {isAdmin} = user.dataValues || 'false'%>
     <h1>Book Catalog</h1>
     <div class="search-container">
-      <input type="text" placeholder="Search" class="search-bar" />
+      <input type="text" placeholder="Search" class="search-bar" value="<%=
+      searchTerm %>" || "" onchange="handleSearch()"/>
       <button class="submit-button" onclick="handleSearch()">Submit</button>
     </div>
     <div class="container">
-      <% books.forEach(book => { %>
+      <% if (books.length === 0) { %>
+      <h1>No books found...</h1>
+      <% } else { %> <% books.forEach(book => { %>
       <div class="card">
         <img src="<%= book.photo %>" alt="<%= book.name %>" />
         <h2><%= book.name %></h2>
@@ -165,17 +170,27 @@
           </button>
         </div>
         <% } %>
-        <button
-          class="btn borrow-btn"
-          id="editBtn"
-          onclick="borrowBook('<%= book.id %>')"
-        >
-          <div id="loading" class="lds-dual-ring" style="display: none"></div>
-          <span id="noloading">Borrow</span>
-        </button>
+        <div class="btn-container" style="margin-bottom: 10px">
+          <button
+            class="btn borrow-btn"
+            id="editBtn"
+            onclick="borrowBook('<%= book.id %>')"
+          >
+            <div id="loading" class="lds-dual-ring" style="display: none"></div>
+            <span id="noloading">Borrow</span>
+          </button>
+          <button
+            class="btn review-btn"
+            id="reviewBtn"
+            onclick="reviewBook('<%= book.id %>')"
+          >
+            <div id="loading" class="lds-dual-ring" style="display: none"></div>
+            <span id="noloading">Review</span>
+          </button>
+        </div>
         <!-- Buttons -->
       </div>
-      <% }) %>
+      <% }) }%>
     </div>
   </body>
   <script>
@@ -215,6 +230,10 @@
     function editBook(id) {
       return (window.location.href = `/dashboard/allbooks/editbook/${id}`);
     }
+    function reviewBook(id) {
+      return (window.location.href = `/dashboard/allbooks/reviewbook/${id}`);
+    }
+
     function deleteBook(id) {
       return fetch(`/dashboard/allbooks/${id}`, {
         method: "DELETE",
@@ -333,6 +352,7 @@
 
     function handleSearch() {
       const searchTerm = document.querySelector(".search-bar").value;
+
       if (!searchTerm) {
         return Toast.fire({
           text: "Enter the values!",
@@ -340,13 +360,7 @@
         });
       }
 
-      // Using Axios for the fetch request
-      return fetch(`/dashboard/search?searchTerm=${searchTerm}`).catch(
-        (error) => {
-          console.error("Error searching:", error);
-          // Handle error response if needed
-        }
-      );
+      window.location.href = `/dashboard/search?searchTerm=${searchTerm}`;
     }
   </script>
 </html>
