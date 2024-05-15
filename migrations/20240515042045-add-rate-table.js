@@ -1,5 +1,7 @@
 "use strict";
 
+const { query } = require("express");
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -16,11 +18,13 @@ module.exports = {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
       },
+
       is_review: {
-        allowNull: false,
         type: Sequelize.BOOLEAN,
+        allowNull: false,
         defaultValue: false,
       },
+
       user_id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -30,19 +34,20 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
+
       book_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "users",
+          model: "books",
           key: "id",
         },
         onDelete: "CASCADE",
       },
       value: {
-        allowNull: false,
         type: Sequelize.STRING,
-        defaultValue: "hello",
+        allowNull: false,
+        defaultValue: "Hello",
       },
       created_at: {
         allowNull: false,
@@ -59,7 +64,7 @@ module.exports = {
     });
     await queryInterface.addConstraint("rates", {
       type: "FOREIGN KEY",
-      name: "FK_users_rate_id",
+      name: "FK_users_upload_id",
       references: {
         table: "users",
         field: "id",
@@ -68,17 +73,17 @@ module.exports = {
       onDelete: "no action",
       onUpdate: "no action",
     });
-    // await queryInterface.addConstraint("rates", {
-    //   type: "FOREIGN KEY",
-    //   name: "FK_books_rate_id",
-    //   references: {
-    //     table: "books",
-    //     field: "id",
-    //   },
-    //   fields: ["book_id"],
-    //   onDelete: "no action",
-    //   onUpdate: "no action",
-    // });
+    await queryInterface.addConstraint("rates", {
+      type: "FOREIGN KEY",
+      name: "FK_books_upload_id",
+      references: {
+        table: "books",
+        field: "id",
+      },
+      fields: ["book_id"],
+      onDelete: "no action",
+      onUpdate: "no action",
+    });
   },
 
   async down(queryInterface, Sequelize) {
@@ -89,7 +94,7 @@ module.exports = {
      * await queryInterface.dropTable('users');
      */
     await queryInterface.dropTable("rates");
-    await queryInterface.removeConstraint("rates", "FK_users_rate_id");
-    // await queryInterface.removeConstraint("rates", "FK_books_rate_id");
+    await queryInterface.removeConstraint("rates", "FK_users_upload_id");
+    await queryInterface.removeConstraint("rates", "FK_books_upload_id");
   },
 };
