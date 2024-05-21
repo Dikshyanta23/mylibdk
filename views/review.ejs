@@ -9,7 +9,6 @@
         font-family: Arial, sans-serif;
         display: flex;
         flex-direction: column;
-        height: 100vh;
         margin: 0;
         background-color: #f0f0f0;
       }
@@ -26,6 +25,7 @@
         border: 1px solid #ccc;
         border-radius: 5px;
         background-color: #f0f8f0;
+        width: 400px;
       }
 
       .star-rating {
@@ -70,7 +70,7 @@
       .submit-button:hover {
         background-color: #45a049; /* Darker green color on hover */
       }
-      #loginBtn {
+      #formBtn {
         width: 100%;
         padding: 10px;
         background-color: #007bff;
@@ -114,71 +114,472 @@
           transform: rotate(360deg);
         }
       }
+      .comment-container {
+        margin-bottom: 20px;
+        flex-direction: column;
+        align-items: center;
+
+        padding: 15px; /* Added padding */
+        border-radius: 5px; /* Added border radius */
+      }
+      .comment {
+        border: none; /* Removed border */
+        padding: 10px;
+        background-color: #fff; /* Added background color */
+        width: 300px; /* Added width */
+        margin-bottom: 10px;
+        text-align: center;
+        gap: 5px;
+        border-radius: 12px;
+      }
+      .comment-reply {
+        border: none; /* Removed border */
+        padding: 10px;
+        background-color: #fff; /* Added background color */
+        width: 400px; /* Added width */
+        margin-bottom: 10px;
+        text-align: center;
+        border-radius: 12px;
+      }
+
+      .reply-button {
+        background-color: green;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-bottom: 10px; /* Added margin */
+      }
+      .reply-form {
+        margin-top: 10px;
+        padding: 10px; /* Added padding */
+        background-color: #f0f8f0; /* Added background color */
+        border-radius: 5px; /* Added border radius */
+      }
+      .reply-form input[type="text"] {
+        width: 100%; /* Made input field wider */
+        padding: 8px; /* Added padding */
+        margin-bottom: 10px; /* Added margin */
+        border: 1px solid #ccc; /* Added border */
+        border-radius: 5px; /* Added border radius */
+        box-sizing: border-box; /* Added box-sizing */
+      }
+      .reply-form button {
+        background-color: #4caf50; /* Green color for submit button */
+        color: white;
+        padding: 8px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .reply-form button:hover {
+        background-color: #45a049; /* Darker green color on hover */
+      }
+      .show-replies-button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px; /* Added margin */
+      }
+      .comments-section {
+        margin-top: 50px;
+      }
+      .ultimate-container {
+        width: 100%;
+        display: flex;
+        align-items: start;
+      }
+      .vote-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin: 0 20px;
+      }
+      .up-container {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        align-items: center;
+      }
+      .vote {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  </head>
-  <body>
-    <%- include('nav')%>
-    <div class="container">
-      <div class="form-container">
-        <h2>Write a Review</h2>
-        <form>
-          <div class="star-rating">
-            <input type="radio" id="star5" name="rating" value="5" />
-            <label for="star5">★</label>
-            <input type="radio" id="star4" name="rating" value="4" />
-            <label for="star4">★</label>
-            <input type="radio" id="star3" name="rating" value="3" />
-            <label for="star3">★</label>
-            <input type="radio" id="star2" name="rating" value="2" />
-            <label for="star2">★</label>
-            <input type="radio" id="star1" name="rating" value="1" />
-            <label for="star1">★</label>
-          </div>
-          <input
-            type="text"
-            name="review"
-            placeholder="Write your review..."
-            class="review-input"
-            id="reveiwed"
-          />
-          <button id="loginBtn">
-            <div id="loading" class="lds-dual-ring" style="display: none"></div>
-            <span id="noloading">Submit</span>
-          </button>
-        </form>
-      </div>
-    </div>
     <script>
-      function isRatingGiven() {
-        // Get all radio buttons with the name "rating"
-        const ratingRadios = document.querySelectorAll('input[name="rating"]');
+      function getBookId() {
+        const currentLocation = window.location.href;
+        const regexPattern = /\/reviewbook\/([^\/]+)/;
+        const match = regexPattern.exec(currentLocation);
 
-        // Loop through each radio button
-        for (let i = 0; i < ratingRadios.length; i++) {
-          // If a radio button is checked, return true
-          if (ratingRadios[i].checked) {
-            return true;
-          }
-        }
-        // If no radio button is checked, return false
-        return false;
-      }
-      function getRatingValue() {
-        // Get the checked radio button with the name "rating"
-        const checkedRating = document.querySelector(
-          'input[name="rating"]:checked'
-        );
-
-        // If a radio button is checked, return its value
-        if (checkedRating) {
-          return checkedRating.value;
+        // Check if there is a match
+        if (match && match.length > 1) {
+          const uuid = match[1]; // Extracted UUID
+          return uuid;
         } else {
-          // If no radio button is checked, return null or handle accordingly
           return null;
         }
       }
+      function submitreply(id, event) {
+        event.preventDefault();
+        const form = event.target.parentElement;
+
+        // Find the input field within the same form
+        const replyInput = form.querySelector('input[name="reply"]');
+
+        // Retrieve the value of the reply input
+        const replyValue = replyInput.value;
+        if (!replyValue.trim()) {
+          // Handle empty reply value (optional)
+          return Toast.fire({
+            text: "Please enter a reply",
+            icon: "error",
+          });
+        }
+        const bookId = getBookId();
+
+        const data = JSON.stringify({
+          commentId: id,
+          reply: replyValue,
+          bookId: bookId,
+        });
+
+        // Configure the fetch request
+        fetch("/dashboard/allbooks/reply", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: data,
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Handle successful response (optional)
+            if (data.title == "success") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast.fire({
+                icon: "success",
+                title: "Successfully replied",
+              }).then(() => {
+                window.location.reload();
+              });
+            }
+
+            if (data.title == "comment not found") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast.fire({
+                icon: "error",
+                title: "Could not find the comment",
+              }).then(() => {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            if (data.title == "book not found") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast.fire({
+                icon: "error",
+                title: "Could not find the book",
+              }).then(() => {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            if (data.title == "create error") {
+              $("#loginBtn").prop("disabled", true);
+              $("#loading").show();
+              $("#noloading").hide();
+              return Toast2.fire({
+                icon: "error",
+                title: `Failed to create entry in db`,
+              }).then(() => {
+                $("#loginBtn").prop("disabled", false);
+                $("#loading").hide();
+                $("#noloading").show();
+              });
+            }
+            // You can add further actions here, like updating the UI
+          })
+          .catch((error) => {
+            // Handle errors (optional)
+            console.error(
+              "There was a problem with the fetch operation:",
+              error
+            );
+          });
+      }
+    </script>
+    <script>
+      function upVote(id) {
+        return fetch("/dashboard/upvote", {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ commentId: id }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.title == "success") {
+              return Toast.fire({
+                icon: "success",
+                title: "Successfully upvoted",
+              }).then(() => {
+                window.location.reload();
+              });
+            }
+            if (data.title == "not found") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not find the comment",
+              });
+            }
+            if (data.title == "already upvoted") {
+              return Toast.fire({
+                icon: "error",
+                title: "You have already upvoted this comment",
+              });
+            }
+            if (data.title == "save error") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not save to db ",
+              });
+            }
+            if (data.title == "update error") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not update db",
+              });
+            }
+          });
+      }
+      function showVoters(buttonId, list, divId, innerTxt) {
+        let template = "<h3>All voters</h3>";
+        list.forEach((voter) => {
+          template += `<p>${voter}</p>`;
+        });
+        divId.innerHTML = template;
+        buttonId.innerText = "Hide Voters";
+        buttonId.onclick = () => {
+          hideVoters(buttonId, divId, list, innerTxt);
+        };
+      }
+      function hideVoters(buttonId, divId, list, innerTxt) {
+        divId.innerHTML = "";
+        buttonId.innerText = innerTxt;
+        buttonId.onclick = () => {
+          showVoters(buttonId, list, divId, innerTxt);
+        };
+      }
+      function getUpVoters(id) {
+        return fetch("/dashboard/getupvoters", {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ commentId: id }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.title == "success") {
+              const selectedBtn = document.getElementById(`voterbtn-${id}`);
+              const text = selectedBtn.innerText;
+              const selectedDiv = document.getElementById(`voters-${id}`);
+              showVoters(selectedBtn, data.voters, selectedDiv, text);
+            }
+            if (data.title == "not found") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not find the comment",
+              });
+            }
+          });
+      }
+      function getDownVoters(id) {
+        return fetch("/dashboard/getdownvoters", {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ commentId: id }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.title == "success") {
+              const selectedBtn = document.getElementById(`voterdownbtn-${id}`);
+              const text = selectedBtn.innerText;
+              const selectedDiv = document.getElementById(`voters-${id}`);
+              showVoters(selectedBtn, data.voters, selectedDiv, text);
+            }
+            if (data.title == "not found") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not find the comment",
+              });
+            }
+          });
+      }
+      function downVote(id) {
+        return fetch("/dashboard/downvote", {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ commentId: id }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.title == "success") {
+              return Toast.fire({
+                icon: "success",
+                title: "Successfully downvoted",
+              }).then(() => {
+                window.location.reload();
+              });
+            }
+            if (data.title == "not found") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not find the comment",
+              });
+            }
+            if (data.title == "already downvoted") {
+              return Toast.fire({
+                icon: "error",
+                title: "You have already downvoted this comment",
+              });
+            }
+            if (data.title == "save error") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not save to db ",
+              });
+            }
+            if (data.title == "update error") {
+              return Toast.fire({
+                icon: "error",
+                title: "Could not update db",
+              });
+            }
+          });
+      }
+
+      function hideBtn(id, margin) {
+        const selectedBtn = document.getElementById(`repbtn-${id}`);
+        const selectedDiv = document.getElementById(`repl${id}`);
+        selectedBtn.innerText = "Show Replies";
+        selectedDiv.innerHTML = "";
+        selectedBtn.onclick = () => {
+          getReplies(id, margin);
+        };
+      }
+      function putTemplate(template, buttonId, divId, id) {
+        const selectedDiv = document.getElementById(divId);
+        const selectedBtn = document.getElementById(buttonId);
+        selectedDiv.innerHTML = template;
+        selectedBtn.innerText = "Hide Replies";
+        selectedBtn.onclick = () => {
+          hideBtn(id, 0);
+        };
+      }
+      function getReplies(id, margin) {
+        return fetch("/dashboard/getreplies", {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ commentId: id }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            let template = "";
+            if (data) {
+              const realMargin = Number(margin) + 25;
+              data.replies.forEach((comment) => {
+                template += `
+                <div class="comment-container" >
+                    <div class="comment" style='margin-left: ${realMargin}px;'>
+                        <p style="font-size: 20px; color: #007bff; font-weight: bold">
+                            ${comment.name}
+                        </p>
+                        <p>"${comment.value}"</p>
+                    <form class="reply-form">
+                        <input type="text" name="reply" placeholder="Your reply" />
+                        <button onclick="submitreply('${comment.id}', event)">Submit</button>
+                    </form>
+                    <div class="vote-container">
+                      <div class="up-container">
+                  <button
+                    onclick="upVote('${comment.id}')"
+                    class="vote"
+                  >
+                    ^
+                  </button>
+
+                  <button
+                    onclick="getUpVoters('${comment.id}')"
+                    id="voterbtn-${comment.id}"
+                  >
+                    ${comment.upCount}
+                  </button>
+                </div>
+                <div class="up-container">
+                  <button
+                    onclick="downVote('${comment.id}')"
+                    class="vote"
+                  >
+                    v
+                  </button>
+
+                  <button
+                    onclick="getDownVoters('${comment.id}')"
+                    id="voterdownbtn-${comment.id}"
+                  >
+                    ${comment.downCount}
+                  </button>
+                </div>
+                      </div>
+                      <div id="voters-${comment.id}"></div>
+                    <button class="show-replies-button" onclick="getReplies('${comment.id}', '${realMargin}')" id="repbtn-${comment.id}">Show Replies</button>
+
+                    </div>
+
+                    <!-- Display replies -->
+                    <div class="replies" id="repl${comment.id}" ></div>
+                </div>
+            `;
+              });
+            } else {
+              template = "<h3>No replies yet</h3>";
+            }
+            putTemplate(template, `repbtn-${id}`, `repl${id}`, id);
+          });
+      }
+
       const Toast = Swal.mixin({
         toast: true,
         position: "top-right",
@@ -209,90 +610,206 @@
           toast.addEventListener("mouseleave", Swal.resumeTimer);
         },
       });
-      const match = window.location.href.match(/\/reviewbook\/([^\/]+)/);
-      const bookId = match ? match[1] : null;
-      $("#loginBtn").on("click", (e) => {
-        e.preventDefault();
-        $("#loading").hide();
-        $("#noloading").show();
-        $("#loginBtn").prop("disabled", true);
-        let review = $("#reveiwed").val();
-        if (!isRatingGiven() && !review) {
+
+      $(document).ready(function () {
+        $("#formBtn").on("click", (e) => {
+          e.preventDefault();
+          $("#loading").hide();
+          $("#noloading").show();
           $("#loginBtn").prop("disabled", true);
-          $("#loading").show();
-          $("#noloading").hide();
-          return Toast.fire({
-            text: "Enter at least a rating or a review",
-            icon: "error",
-          }).then(() => {
-            $("#loginBtn").prop("disabled", false);
-            $("#loading").hide();
-            $("#noloading").show();
-          });
-        }
-
-        return fetch("/dashboard/allbooks/reviewbook", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ review, rating: getRatingValue(), bookId }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.title == "success") {
-              $("#loginBtn").prop("disabled", true);
-              $("#loading").show();
-              $("#noloading").hide();
-              return Toast.fire({
-                icon: "success",
-                title: "Successfully reviewed/rated the book",
-              }).then(() => {
-                window.location.href = `/dashboard/`;
-              });
-            }
-
-            if (data.title == "create error") {
-              $("#loginBtn").prop("disabled", true);
-              $("#loading").show();
-              $("#noloading").hide();
-              return Toast.fire({
-                icon: "error",
-                title: "Could not create values in db",
-              }).then(() => {
-                $("#loginBtn").prop("disabled", false);
-                $("#loading").hide();
-                $("#noloading").show();
-              });
-            }
-            if (data.title == "not found") {
-              $("#loginBtn").prop("disabled", true);
-              $("#loading").show();
-              $("#noloading").hide();
-              return Toast2.fire({
-                icon: "error",
-                title: `Could not find the book`,
-              }).then(() => {
-                $("#loginBtn").prop("disabled", false);
-                $("#loading").hide();
-                $("#noloading").show();
-              });
-            }
-            if (data.title == "missing values") {
-              $("#loginBtn").prop("disabled", true);
-              $("#loading").show();
-              $("#noloading").hide();
-              return Toast2.fire({
-                icon: "error",
-                title: `Enter either values.`,
-              }).then(() => {
-                $("#loginBtn").prop("disabled", false);
-                $("#loading").hide();
-                $("#noloading").show();
-              });
-            }
-          });
+          const rating = document.querySelector(
+            'input[name="rating"]:checked'
+          ).value;
+          const review = document.getElementById("reveiwed").value;
+          if (!review || !rating) {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              text: "Enter both values !",
+              icon: "error",
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          return fetch(`/dashboard/allbooks/reviewbook/${getBookId()}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ rating, review, bookId: getBookId() }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.title == "success") {
+                $("#loginBtn").prop("disabled", true);
+                $("#loading").show();
+                $("#noloading").hide();
+                return Toast.fire({
+                  icon: "success",
+                  title: "Successfully reviewed !",
+                }).then(() => {
+                  window.location.reload();
+                });
+              }
+              if (data.title == "not found") {
+                $("#loginBtn").prop("disabled", true);
+                $("#loading").show();
+                $("#noloading").hide();
+                return Toast.fire({
+                  icon: "error",
+                  title: "Book not found",
+                }).then(() => {
+                  $("#loginBtn").prop("disabled", false);
+                  $("#loading").hide();
+                  $("#noloading").show();
+                });
+              }
+              if (data.title == "not taken") {
+                $("#loginBtn").prop("disabled", true);
+                $("#loading").show();
+                $("#noloading").hide();
+                return Toast.fire({
+                  icon: "error",
+                  title: "You have not borrowed this book",
+                }).then(() => {
+                  $("#loginBtn").prop("disabled", false);
+                  $("#loading").hide();
+                  $("#noloading").show();
+                });
+              }
+              if (data.title == "missing values") {
+                $("#loginBtn").prop("disabled", true);
+                $("#loading").show();
+                $("#noloading").hide();
+                return Toast2.fire({
+                  icon: "error",
+                  title: `Values are amiss`,
+                }).then(() => {
+                  $("#loginBtn").prop("disabled", false);
+                  $("#loading").hide();
+                  $("#noloading").show();
+                });
+              }
+              if (data.title == "already reviewed") {
+                $("#loginBtn").prop("disabled", true);
+                $("#loading").show();
+                $("#noloading").hide();
+                return Toast2.fire({
+                  icon: "error",
+                  title: `You have already reviewed this book`,
+                }).then(() => {
+                  $("#loginBtn").prop("disabled", false);
+                  $("#loading").hide();
+                  $("#noloading").show();
+                });
+              }
+            });
+        });
       });
     </script>
+  </head>
+  <body>
+    <%- include('nav')%>
+    <div class="container">
+      <div class="form-container">
+        <h2>Write a Review</h2>
+        <form>
+          <div class="star-rating">
+            <input type="radio" id="star5" name="rating" value="5" />
+            <label for="star5">★</label>
+            <input type="radio" id="star4" name="rating" value="4" />
+            <label for="star4">★</label>
+            <input type="radio" id="star3" name="rating" value="3" />
+            <label for="star3">★</label>
+            <input type="radio" id="star2" name="rating" value="2" />
+            <label for="star2">★</label>
+            <input type="radio" id="star1" name="rating" value="1" />
+            <label for="star1">★</label>
+          </div>
+          <input
+            type="text"
+            name="review"
+            placeholder="Write your review..."
+            class="review-input"
+            id="reveiwed"
+          />
+        </form>
+        <button id="formBtn">
+          <div id="loading" class="lds-dual-ring" style="display: none"></div>
+          <span id="noloading">Submit</span>
+        </button>
+      </div>
+      <div class="ultimate-container">
+        <div class="comments-section">
+          <% if (comments) { %> <% comments.forEach((comment) => { %>
+          <div class="comment-container">
+            <% const margin = 0 %>
+            <div class="comment">
+              <p style="font-size: 20px; color: #007bff; font-weight: bold">
+                <%= comment.dataValues.name %>
+              </p>
+              <p>"<%= comment.dataValues.value %>"</p>
+              <form class="reply-form">
+                <input type="text" name="reply" placeholder="Your reply" />
+                <button
+                  onclick="submitreply('<%=comment.dataValues.id%>', event)"
+                >
+                  Submit
+                </button>
+              </form>
+              <div class="vote-container">
+                <div class="up-container">
+                  <button
+                    onclick="upVote('<%=comment.dataValues.id%>')"
+                    class="vote"
+                  >
+                    ^
+                  </button>
+
+                  <button
+                    onclick="getUpVoters('<%=comment.dataValues.id%>')"
+                    id="voterbtn-<%=comment.dataValues.id%>"
+                  >
+                    <%= comment.dataValues.upCount %>
+                  </button>
+                </div>
+                <div class="up-container">
+                  <button
+                    onclick="downVote('<%=comment.dataValues.id%>')"
+                    class="vote"
+                  >
+                    v
+                  </button>
+
+                  <button
+                    onclick="getDownVoters('<%=comment.dataValues.id%>')"
+                    id="voterdownbtn-<%=comment.dataValues.id%>"
+                  >
+                    <%= comment.dataValues.downCount %>
+                  </button>
+                </div>
+              </div>
+              <div id="voters-<%= comment.dataValues.id %>"></div>
+              <button
+                class="show-replies-button"
+                onclick="getReplies('<%= comment.dataValues.id%>', 0)"
+                id="repbtn-<%= comment.dataValues.id%>"
+              >
+                Show Replies
+              </button>
+            </div>
+
+            <!-- Display replies -->
+            <div class="replies" id="repl<%= comment.dataValues.id %>"></div>
+          </div>
+          <% }) } else { %>
+          <h3>No comments yet</h3>
+          <% } %>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

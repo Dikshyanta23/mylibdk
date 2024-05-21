@@ -10,6 +10,9 @@ const authRoutes = require("./routes/auth");
 const dashboardRoute = require("./routes/dashboardRoutes");
 require("./config/connection");
 const axios = require("axios");
+const bodyParser = require("body-parser");
+
+const injectEnvVariables = require("./config/injectenv");
 const setupCronJob = require("./config/cronjob");
 let MySQLStore = require("express-mysql-session")(session);
 require("./config/passport")(passport);
@@ -24,6 +27,8 @@ app.use("/uploads", express.static("uploads"));
 app.use(passport.initialize());
 app.use(express.json({ limit: "100mb" }));
 app.use(express.static("/views/images"));
+app.use(bodyParser.json());
+app.use(injectEnvVariables);
 
 //config
 app.set("views", path.join(__dirname, "views"));
@@ -57,7 +62,7 @@ app.use(
 app.use(passport.session());
 
 //cronjob
-// setupCronJob();
+setupCronJob();
 
 //middleware
 app.use("/", authRoutes);

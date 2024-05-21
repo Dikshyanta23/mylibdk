@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recommendations</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        text-align: center;
+      }
+
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+
+      .card {
+        width: calc(
+          33.33% - 20px
+        ); /* By default, three cards per row with space between */
+        margin-bottom: 20px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+      }
+
+      .card img {
+        width: 100%;
+        height: 450px;
+        border-radius: 5px;
+        margin-bottom: 15px; /* Increased margin to provide space between image and text */
+      }
+
+      /* Button styles */
+      .btn-container {
+        display: flex;
+        justify-content: space-between; /* Buttons evenly spaced */
+        margin-top: 15px; /* Add margin between text and buttons */
+      }
+
+      .btn {
+        width: calc(
+          50% - 5px
+        ); /* Adjust button width to be half of the container */
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .edit-btn {
+        background-color: green;
+      }
+      .borrow-btn {
+        background-color: gray;
+      }
+      .review-btn {
+        background-color: #daa520;
+      }
+      .delete-btn {
+        background-color: #f44336;
+      }
+
+      .card p strong {
+        color: green;
+      }
+
+      @media screen and (max-width: 768px) {
+        .card {
+          width: calc(
+            50% - 20px
+          ); /* Two cards per row with space between on smaller screens */
+        }
+      }
+
+      @media screen and (max-width: 480px) {
+        .card {
+          width: 100%; /* Single card per row on smallest screens */
+        }
+      }
+      .search-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding: 0 40px;
+      }
+
+      .search-bar {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-right: 10px;
+        flex-grow: 1; /* Allow the input to grow to fill available space */
+      }
+
+      .submit-button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      label {
+        margin-left: 20px;
+      }
+
+      input[type="checkbox"] {
+        margin-right: 5px;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <%- include('nav') %> <% const {isAdmin} = user.dataValues || 'false'%>
+    <h1>Recommendations</h1>
+    <div class="container">
+      <% if (books.length === 0) { %>
+      <h1>No books found...</h1>
+      <% } else { %> <% books.forEach(book => { %>
+      <div class="card">
+        <img src="<%= book.photo %>" alt="<%= book.name %>" />
+        <h2><%= book.name %></h2>
+        <p><strong>Author:</strong> <%= book.author %></p>
+        <p><strong>Genre:</strong> <%= book.genre %></p>
+        <p><strong>Published Year:</strong> <%= book.publishedYear %></p>
+        <p><strong>Price per day:</strong> <%= book.price %></p>
+        <p><strong>Fine per day (14+ days):</strong> $<%= book.fine %></p>
+        <p><strong>Stock:</strong> <%= book.stock %></p>
+        <p><strong>Rating:</strong> <%= book.dataValues.rating %>/5</p>
+        <div class="btn-container" style="margin-bottom: 10px">
+          <button
+            class="btn borrow-btn"
+            id="editBtn"
+            onclick="borrowBook('<%= book.id %>')"
+          >
+            <div id="loading" class="lds-dual-ring" style="display: none"></div>
+            <span id="noloading">Borrow</span>
+          </button>
+        </div>
+        <!-- Buttons -->
+      </div>
+      <% }) }%>
+    </div>
+  </body>
+  <script>
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    const Toast2 = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 4000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    function borrowBook(id) {
+      return fetch(`/dashboard/allbooks/${id}`, {
+        method: "POST",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.title == "success") {
+            return Toast.fire({
+              icon: "success",
+              title: "Book borrowed sucessfully.",
+            }).then(() => {
+              window.location.reload();
+            });
+          }
+          if (data.title == "max limit") {
+            return Toast.fire({
+              icon: "error",
+              title: "Can't borrow more than 3 books",
+            }).then(() => {
+              // window.location.reload();
+            });
+          }
+          if (data.title == "insufficient balance") {
+            return Toast.fire({
+              icon: "error",
+              title: "Insufficient balance to borrow the book",
+            }).then(() => {
+              // window.location.reload();
+            });
+          }
+          if (data.title == "wait max limit") {
+            return Toast.fire({
+              icon: "error",
+              title: "Your waitlist is full",
+            }).then(() => {
+              // window.location.reload();
+            });
+          }
+          if (data.title == "pre waited") {
+            return Toast.fire({
+              icon: "error",
+              title: "Well let you know when the book is available",
+            }).then(() => {
+              // window.location.reload();
+            });
+          }
+          if (data.title == "out of stock") {
+            return Toast.fire({
+              icon: "success",
+              title: "Book is out of stock. We will email when we get it back",
+            }).then(() => {
+              // window.location.reload();
+            });
+          }
+          if (data.title == "save error") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not save the changes",
+            });
+          }
+          if (data.title == "update error") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not update the book",
+            });
+          }
+          if (data.title == "not found") {
+            return Toast.fire({
+              icon: "error",
+              title: "Could not find the book",
+            });
+          }
+          if (data.title == "pre owned") {
+            return Toast.fire({
+              icon: "error",
+              title: "Book already borrowed",
+            });
+          }
+        });
+    }
+  </script>
+</html>

@@ -23,10 +23,10 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      isReview: {
-        type: DataTypes.BOOLEAN,
+      rating: {
+        type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: false,
+        defaultValue: 0,
       },
       userId: {
         type: DataTypes.UUID,
@@ -50,6 +50,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
         defaultValue: "Hello",
+      },
+      parentId: {
+        type: DataTypes.UUID,
+      },
+      votes: {
+        type: DataTypes.JSON,
+        allowNull: false,
+        defaultValue: [],
       },
     },
 

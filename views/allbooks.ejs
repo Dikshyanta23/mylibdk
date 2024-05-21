@@ -150,6 +150,8 @@
         <p><strong>Price per day:</strong> <%= book.price %></p>
         <p><strong>Fine per day (14+ days):</strong> $<%= book.fine %></p>
         <p><strong>Stock:</strong> <%= book.stock %></p>
+        <p><strong>Rating:</strong> <%= book.dataValues.rating %>/5</p>
+
         <% if (isAdmin) { %>
         <div class="btn-container" style="margin-bottom: 10px">
           <button
@@ -352,13 +354,6 @@
 
     function handleSearch() {
       const searchTerm = document.querySelector(".search-bar").value;
-
-      if (!searchTerm) {
-        return Toast.fire({
-          text: "Enter the values!",
-          icon: "error",
-        });
-      }
 
       window.location.href = `/dashboard/search?searchTerm=${searchTerm}`;
     }

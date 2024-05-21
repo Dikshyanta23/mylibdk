@@ -2,13 +2,17 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://js.pusher.com/7.0/pusher.min.js"></script>
 <script>
   function navigateTo(route) {
     window.location.href = `/dashboard/${route}`;
   }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script></script>
 <style>
   /* Navbar styling */
   nav {
@@ -53,6 +57,9 @@
   .messageBtn {
     position: relative;
   }
+  .notifybtn {
+    position: relative;
+  }
   .counter {
     background-color: red;
     padding: 4px 6px;
@@ -73,6 +80,12 @@
     <button onclick="navigateTo('allbooks')">All books</button>
     <button onclick="navigateTo('mybooks')">My books</button>
     <button onclick="navigateTo('transactions')">Transactions</button>
+    <button onclick="navigateTo('recommendations')">Recommendations</button>
+    <button onclick="navigateTo('notification')" class="notifybtn">
+      Notifications <% if (notifications.length > 0) { %>
+      <span class="counter"><%= notifications.length %></span>
+      <% } %>
+    </button>
 
     <% if (isAdmin) { %>
     <button onclick="navigateTo('messages')" class="messageBtn">
@@ -89,6 +102,19 @@
     </form>
   </div>
   <script>
+    // Pusher.logToConsole = true;
+
+    // const pusher = new Pusher("554ec32d8a10937b790f", {
+    //   cluster: "ap2",
+    // });
+
+    // const channel = pusher.subscribe("library");
+    // channel.bind("book-added", function (data) {
+    //   Toast2.fire({
+    //     icon: "success",
+    //     title: `${data.title} by ${data.author} has been added to the library`,
+    //   });
+    // });
     document
       .getElementById("logoutForm")
       .addEventListener("submit", function (event) {
