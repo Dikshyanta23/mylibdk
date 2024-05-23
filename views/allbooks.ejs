@@ -91,9 +91,10 @@
       .search-container {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
         margin-bottom: 20px;
         padding: 0 40px;
+        gap: 40px;
       }
 
       .search-bar {
@@ -102,6 +103,7 @@
         border-radius: 4px;
         margin-right: 10px;
         flex-grow: 1; /* Allow the input to grow to fill available space */
+        max-width: 500px;
       }
 
       .submit-button {
@@ -128,13 +130,37 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script></script>
   </head>
   <body>
     <%- include('nav') %> <% const {isAdmin} = user.dataValues || 'false'%>
     <h1>Book Catalog</h1>
     <div class="search-container">
-      <input type="text" placeholder="Search" class="search-bar" value="<%=
-      searchTerm %>" || "" onchange="handleSearch()"/>
+      <input
+        type="text"
+        placeholder="Search"
+        class="search-bar"
+        value="<%=
+      searchTerm %>"
+        ||
+      />
+      <div class="options-container">
+        <label
+          ><input type="checkbox" class="filter-checkbox" value="author" />
+          Author</label
+        >
+        <label
+          ><input type="checkbox" class="filter-checkbox" value="year" />
+          Year</label
+        >
+        <label
+          ><input type="checkbox" class="filter-checkbox" value="title" />
+          Title</label
+        >
+        <label
+          ><input type="checkbox" id="all-checkbox" value="all" /> All</label
+        >
+      </div>
       <button class="submit-button" onclick="handleSearch()">Submit</button>
     </div>
     <div class="container">
@@ -196,6 +222,27 @@
     </div>
   </body>
   <script>
+    document
+      .getElementById("all-checkbox")
+      .addEventListener("change", function () {
+        const checkboxes = document.querySelectorAll(".filter-checkbox");
+        if (this.checked) {
+          checkboxes.forEach((checkbox) => {
+            checkbox.checked = false;
+          });
+          this.checked = true;
+        }
+      });
+
+    // Handle individual checkbox behavior
+    const filterCheckboxes = document.querySelectorAll(".filter-checkbox");
+    filterCheckboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", function () {
+        if (document.getElementById("all-checkbox").checked) {
+          document.getElementById("all-checkbox").checked = false;
+        }
+      });
+    });
     const Toast = Swal.mixin({
       toast: true,
       position: "top-right",
@@ -351,11 +398,30 @@
           }
         });
     }
+    function getSelectedFilters() {
+      const checkboxes = document.querySelectorAll(".filter-checkbox");
+      const selectedValues = [];
+      checkboxes.forEach((checkbox) => {
+        if (checkbox.checked) {
+          selectedValues.push(checkbox.value);
+        }
+      });
+      return selectedValues;
+    }
 
     function handleSearch() {
       const searchTerm = document.querySelector(".search-bar").value;
+      const selectedFilters = getSelectedFilters();
+      let queryString = "";
+      if (selectedFilters.length > 0) {
+        queryString = `?searchTerm=${searchTerm}&filters=${selectedFilters.join(
+          ","
+        )}`;
+      } else {
+        queryString = `?searchTerm=${searchTerm}`;
+      }
 
-      window.location.href = `/dashboard/search?searchTerm=${searchTerm}`;
+      window.location.href = `/dashboard/search${queryString}`;
     }
   </script>
 </html>

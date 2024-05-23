@@ -11,11 +11,11 @@ const dashboardRoute = require("./routes/dashboardRoutes");
 require("./config/connection");
 const axios = require("axios");
 const bodyParser = require("body-parser");
-
 const injectEnvVariables = require("./config/injectenv");
 const setupCronJob = require("./config/cronjob");
 let MySQLStore = require("express-mysql-session")(session);
-require("./config/passport")(passport);
+const passportImp = require("./config/passport");
+var cors = require("cors");
 require("dotenv").config();
 
 //middleware
@@ -29,6 +29,7 @@ app.use(express.json({ limit: "100mb" }));
 app.use(express.static("/views/images"));
 app.use(bodyParser.json());
 app.use(injectEnvVariables);
+app.use(cors());
 
 //config
 app.set("views", path.join(__dirname, "views"));
@@ -59,6 +60,7 @@ app.use(
 );
 
 //passport session
+app.use(passport.initialize());
 app.use(passport.session());
 
 //cronjob

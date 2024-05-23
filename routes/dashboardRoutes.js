@@ -337,7 +337,28 @@ router.get("/allbooks", requireAuth, async (req, res) => {
 });
 
 router.get("/search", async (req, res) => {
-  const searchTerm = req.query.searchTerm;
+  const { searchTerm, filters } = req.query;
+  let filterArray = [];
+  let convertedArray = [];
+  let isFilter = false;
+  if (filters) {
+    if (filters.includes(",")) {
+      filterArray = filters.split(",");
+    } else {
+      filterArray = [filters];
+    }
+    convertedArray = filterArray.map((value) => {
+      switch (value) {
+        case "title":
+          return "name";
+        case "year":
+          return "publishedYear";
+        default:
+          return value;
+      }
+    });
+    isFilter = true;
+  }
   const messages = await Message.findAll({ where: { read: false } });
   const notifications = filterNotifications(req.user.notification) || [];
   const books = await Book.findAll({});
@@ -352,12 +373,36 @@ router.get("/search", async (req, res) => {
         notifications: notifications,
       });
     }
+    if (filterArray.length > 0) {
+      const searchConditions = convertedArray.map((field) => ({
+        [field]: { [Op.like]: `%${searchTerm}%` },
+      }));
+
+      // Construct the where clause
+      const whereClause = {
+        deleted_at: null,
+        [Op.or]: searchConditions,
+      };
+
+      // Example usage in a Sequelize query
+      const results = await Book.findAll({
+        where: whereClause,
+      });
+      return res.render("allbooks", {
+        books: await drillReviews(results),
+        messages: messages,
+        user: req.user,
+        searchTerm: searchTerm,
+        notifications: notifications,
+      });
+    }
     const filteredBooks = await Book.findAll({
       where: {
         deleted_at: null,
         [Op.or]: [
           { name: { [Op.like]: `%${searchTerm}%` } },
           { author: { [Op.like]: `%${searchTerm}%` } },
+          { publishedYear: { [Op.like]: `%${searchTerm}%` } },
         ],
       },
       attributes: [
@@ -1131,52 +1176,6 @@ async function fetchRecommendedBooks(authors, genres, years, borrowedBooks) {
   return recommendedBooks;
 }
 
-// router.get("/recommendations", requireAuth, async (req, res) => {
-//   const user = await User.findOne({ where: { id: req.user.id } });
-//   if (!user) {
-//     return res.json({ title: "not found" });
-//   }
-//   const messages = await Message.findAll({ where: { read: false } });
-//   const notifications = filterNotifications(req.user.notification) || [];
-//   const userBooks = user.dataValues.bookArray || [];
-//   if (userBooks.length == 0) {
-//     const allBooks = await Book.findAll();
-//     const newBooks = getRandomItems(allBooks, 3);
-//     return res.render("recommendations", {
-//       user: req.user,
-//       messages: messages,
-//       notifications: notifications,
-//       books: newBooks,
-//     });
-//   }
-//   const getFullBooks = await Promise.all(
-//     userBooks.map(async (book) => {
-//       const realBook = await Book.findOne({ where: { id: book.id } }); // Ensure you are using the correct key for the book ID
-//       return realBook;
-//     })
-//   );
-//   const borrowedAuthors = getFullBooks.map((book) => book.dataValues.author);
-//   const borrowedGenres = getFullBooks.map((book) => book.dataValues.genre);
-//   const borrowedYears = getFullBooks.map(
-//     (book) => book.dataValues.publishedYear
-//   );
-//   const recommendedBooks = await fetchRecommendedBooks(
-//     borrowedAuthors,
-//     borrowedGenres,
-//     borrowedYears,
-//     userBooks
-//   );
-
-//   console.log(recommendedBooks);
-
-//   return res.render("recommendations", {
-//     user: req.user,
-//     messages: messages,
-//     notifications: notifications,
-//     books: recommendedBooks,
-//   });
-// });
-
 router.get("/recommendations", requireAuth, async (req, res) => {
   try {
     const user = await User.findOne({ where: { id: req.user.id } });
@@ -1218,8 +1217,6 @@ router.get("/recommendations", requireAuth, async (req, res) => {
       borrowedYears,
       userBooks
     );
-
-    console.log(recommendedBooks);
 
     return res.render("recommendations", {
       user: req.user,

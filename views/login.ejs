@@ -123,6 +123,16 @@
       #loginBtn:hover {
         background-color: #0056b3;
       }
+      .fbtn {
+        width: 100%;
+        padding: 10px;
+        background-color: #3b5998;
+        border: none;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
     </style>
   </head>
 
@@ -165,8 +175,11 @@
         </button>
       </form>
       <p>Don't have an account? <a href="/register">Register here</a>.</p>
+
+      <button id="fbbtn">Login with Facebook</button>
     </div>
   </body>
+
   <script>
     function switchicon() {
       const eyehide = document.querySelector(".eyehide");
@@ -212,6 +225,11 @@
         toast.addEventListener("mouseenter", Swal.stopTimer);
         toast.addEventListener("mouseleave", Swal.resumeTimer);
       },
+    });
+    $("#fbbtn").on("click", (e) => {
+      return fetch("/auth/facebook", {
+        method: "GET",
+      });
     });
     $("#loginBtn").on("click", (e) => {
       e.preventDefault();

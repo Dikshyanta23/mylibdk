@@ -67,6 +67,9 @@ module.exports = (sequelize, DataTypes) => {
       notification: {
         type: DataTypes.JSON,
       },
+      facebookId: {
+        type: DataTypes.STRING,
+      },
     },
 
     {
