@@ -5,8 +5,9 @@ const bcrypt = require("bcryptjs");
 const { User, Admin } = require("../models");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
-const FACEBOOK_APP_ID = '776536324264708';
-const FACEBOOK_APP_SECRET = 'a21340a8d9ae34765972f1ee0839e6cd';
+
+const FACEBOOK_APP_ID = "1009069014210731"
+const FACEBOOK_APP_SECRET = "7631e3a28d0427feb2262caf5e2f19a0"
 const CALLBACK_URL = 'http://localhost:5000/auth/facebook/callback';
 
 passport.use(new FacebookStrategy({
