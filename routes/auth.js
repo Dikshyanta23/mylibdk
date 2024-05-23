@@ -14,66 +14,15 @@ router.get("/message", (req, res) => {
   res.render("message");
 });
 
-router.get("/auth/facebook", async (req, res) => {
-  try {
-    // Dynamic import of query-string library
-    const queryString = (await import("query-string")).default;
+router.get("/auth/facebook", passport.authenticate("facebook"));
 
-    // Construct the query parameters for redirecting to Facebook
-    const params = {
-      client_id: "YOUR_FACEBOOK_APP_ID",
-      redirect_uri: "http://localhost:3000/auth/facebook/callback",
-      scope: "email", // Specify the scopes you need
-    };
-
-    // Stringify the parameters
-    const paramString = queryString.stringify(params);
-
-    // Construct the URL for redirecting to Facebook for authentication
-    const authUrl = `https://www.facebook.com/v3.2/dialog/oauth?${paramString}`;
-
-    // Redirect the user to Facebook authentication page
-    res.redirect(authUrl);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal Server Error");
+router.get(
+  "/auth/facebook/callback",
+  passport.authenticate("facebook", { failureRedirect: "/login" }),
+  (req, res) => {
+    res.redirect("/");
   }
-});
-
-// Callback route for handling Facebook's response after authentication
-router.get("/auth/facebook/callback", async (req, res) => {
-  // Dynamic import of query-string library
-  const queryString = await import("query-string").default;
-
-  const { code } = req.query;
-
-  // Construct the parameters for requesting access token
-  const params = {
-    client_id: "YOUR_FACEBOOK_APP_ID",
-    client_secret: "YOUR_FACEBOOK_APP_SECRET",
-    redirect_uri: "http://localhost:3000/auth/facebook/callback",
-    code,
-  };
-
-  // Stringify the parameters
-  const paramString = queryString.stringify(params);
-
-  // Construct the URL for requesting access token
-  const tokenUrl = `https://graph.facebook.com/v3.2/oauth/access_token?${paramString}`;
-
-  try {
-    // Fetch the access token
-    const tokenResponse = await fetch(tokenUrl);
-    const tokenData = await tokenResponse.json();
-
-    // Use tokenData.access_token to make requests to Facebook Graph API
-
-    res.send(tokenData);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+);
 
 router.get("/success", async (req, res) => {
   const userInfo = {

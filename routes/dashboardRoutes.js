@@ -50,7 +50,11 @@ async function drillName(commentList) {
   return newBooks;
 }
 function filterNotifications(list) {
-  return list.filter((item) => item.read == false);
+  if (list) {
+    return list.filter((item) => item.read == false);
+  } else {
+    return [];
+  }
 }
 async function createNotification(user, message) {
   const newNotification = {

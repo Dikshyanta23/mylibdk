@@ -67,7 +67,6 @@ passport.use(
     },
     async function (accessToken, refreshToken, profile, cb) {
       // Here, you would check if the user already exists in your database
-      console.log(profile);
       return null, profile;
     }
   )
