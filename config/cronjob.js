@@ -15,9 +15,26 @@ function replaceObjectById(id, listOfObjects, newObject) {
 
 function setupCronJob() {
   cron.schedule(
-    "*/3 * * * * *",
+    "0 2 * * *",
     async () => {
       try {
+        //for notifictaion
+        const notificationUsers = await User.findAll({});
+        const notificationTime = new Date().getTime();
+        notificationUsers.forEach(async (user) => {
+          const notificationArray = user.dataValues.notification;
+
+          notificationArray.forEach(async (notification) => {
+            if (notificationTime > notification.expiryDate) {
+              const newNotificationArray = notificationArray.filter(
+                (notification) => notification.expiryDate > notificationTime
+              );
+              await user.update({ notification: newNotificationArray });
+              await user.save();
+            }
+          });
+        });
+
         const currentDate = new Date();
         // Find all users who have borrowed books
         const users = await User.findAll({

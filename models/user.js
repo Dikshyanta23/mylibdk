@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       User.hasMany(models.Book, {
         foreignKey: "id",
-        as: "booksTaken",
+        as: "booksTakened",
       });
       User.hasMany(models.Transaction, {
         foreignKey: "id",
@@ -60,6 +60,15 @@ module.exports = (sequelize, DataTypes) => {
       },
       waitlist: {
         type: DataTypes.JSON,
+      },
+      booksTaken: {
+        type: DataTypes.JSON,
+      },
+      notification: {
+        type: DataTypes.JSON,
+      },
+      facebookId: {
+        type: DataTypes.STRING,
       },
     },
 
