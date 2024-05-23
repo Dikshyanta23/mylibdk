@@ -176,7 +176,9 @@
       </form>
       <p>Don't have an account? <a href="/register">Register here</a>.</p>
 
-      <button id="fbbtn">Login with Facebook</button>
+      <a href="https://68c0-124-41-211-241.ngrok-free.app/auth/google/callback"
+        >Login with Facebook</a
+      >
     </div>
   </body>
 
@@ -227,9 +229,12 @@
       },
     });
     $("#fbbtn").on("click", (e) => {
-      return fetch("/auth/facebook", {
-        method: "GET",
-      });
+      return fetch(
+        "https://68c0-124-41-211-241.ngrok-free.app/auth/google/callback",
+        {
+          method: "GET",
+        }
+      );
     });
     $("#loginBtn").on("click", (e) => {
       e.preventDefault();
