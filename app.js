@@ -17,6 +17,7 @@ let MySQLStore = require("express-mysql-session")(session);
 const passportImp = require("./config/passport");
 var cors = require("cors");
 require("dotenv").config();
+const proxy = require('http-proxy')
 
 //middleware
 app.use(express.json());
@@ -69,6 +70,9 @@ setupCronJob();
 //middleware
 app.use("/", authRoutes);
 app.use("/dashboard", dashboardRoute);
+
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -1,7 +1,29 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
 const bcrypt = require("bcryptjs");
 const { User, Admin } = require("../models");
+
+const FACEBOOK_APP_ID = '776536324264708';
+const FACEBOOK_APP_SECRET = 'a21340a8d9ae34765972f1ee0839e6cd';
+const CALLBACK_URL = 'http://localhost:5000/auth/facebook/callback';
+
+passport.use(new FacebookStrategy({
+  clientID: FACEBOOK_APP_ID,
+  clientSecret: FACEBOOK_APP_SECRET,
+  callbackURL: CALLBACK_URL,
+  profileFields: ['id', 'displayName', 'picture.type(large)', 'email']
+}, function (accessToken, refreshToken, profile, done) {
+  // Here, you can handle the user profile data and create/update the user in your database
+  // For example:
+  console.log("came here");
+  console.log(profile);
+
+  return done(null, profile)
+
+}
+))
+
 
 // User login strategy
 passport.use(

@@ -176,7 +176,7 @@
       </form>
       <p>Don't have an account? <a href="/register">Register here</a>.</p>
 
-      <button id="fbbtn">Login with Facebook</button>
+      <a href="/auth/facebook">Login with fb</a>
     </div>
   </body>
 
@@ -226,11 +226,11 @@
         toast.addEventListener("mouseleave", Swal.resumeTimer);
       },
     });
-    $("#fbbtn").on("click", (e) => {
-      return fetch("/auth/facebook", {
-        method: "GET",
-      });
-    });
+    // $("#fbbtn").on("click", (e) => {
+    //   return fetch("/auth/facebook", {
+    //     method: "GET",
+    //   });
+    // });
     $("#loginBtn").on("click", (e) => {
       e.preventDefault();
       $("#loading").hide();
