@@ -22,7 +22,7 @@ router.get("/auth/facebook", async (req, res) => {
     // Construct the query parameters for redirecting to Facebook
     const params = {
       client_id: "YOUR_FACEBOOK_APP_ID",
-      redirect_uri: "http://localhost:3000/auth/facebook/callback",
+      redirect_uri: "http://localhost:5000/auth/facebook/callback",
       scope: "email", // Specify the scopes you need
     };
 

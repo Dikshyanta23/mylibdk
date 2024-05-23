@@ -1,6 +1,5 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
-const FacebookStrategy = require("passport-facebook").Strategy;
 const bcrypt = require("bcryptjs");
 const { User, Admin } = require("../models");
 
@@ -56,22 +55,6 @@ passport.use(
   })
 );
 
-// Facebook login strategy
-passport.use(
-  new FacebookStrategy(
-    {
-      clientID: process.env.FACEBOOK_APP_ID,
-      clientSecret: process.env.FACEBOOK_APP_SECRET,
-      callbackURL: "http://localhost:5000/auth/facebook/callback",
-      profileFields: ["id", "email", "displayName"],
-    },
-    async function (accessToken, refreshToken, profile, cb) {
-      // Here, you would check if the user already exists in your database
-      console.log(profile);
-      return null, profile;
-    }
-  )
-);
 
 // Serialize and deserialize user
 passport.serializeUser(function (user, done) {
