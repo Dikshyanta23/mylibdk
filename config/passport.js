@@ -5,27 +5,33 @@ const bcrypt = require("bcryptjs");
 const { User, Admin } = require("../models");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: process.env.FACEBOOK_APP_ID,
+      clientSecret: process.env.FACEBOOK_APP_SECRET,
+      callbackURL: process.env.CALLBACK_URL,
+      profileFields: ["id", "displayName", "picture.type(large)", "email"],
+    },
+    async function (accessToken, refreshToken, profile, done) {
+      // Here, you can handle the user profile data and create/update the user in your database
+      // For example:
+      // console.log("came here");
+      // console.log(profile);
 
-const FACEBOOK_APP_ID = "1009069014210731"
-const FACEBOOK_APP_SECRET = "7631e3a28d0427feb2262caf5e2f19a0"
-const CALLBACK_URL = 'http://localhost:5000/auth/facebook/callback';
+      const [user, created] = await User.findOrCreate({
+        where: { id: profile.id },
+        defaults: {
+          displayName: profile.displayName,
+          email: profile.emails ? profile.emails[0].value : null,
+          // Add any other default values you want to set
+        },
+      });
 
-passport.use(new FacebookStrategy({
-  clientID: FACEBOOK_APP_ID,
-  clientSecret: FACEBOOK_APP_SECRET,
-  callbackURL: CALLBACK_URL,
-  profileFields: ['id', 'displayName', 'picture.type(large)', 'email']
-}, function (accessToken, refreshToken, profile, done) {
-  // Here, you can handle the user profile data and create/update the user in your database
-  // For example:
-  console.log("came here");
-  console.log(profile);
-
-  return done(null, profile)
-
-}
-))
-
+      return done(null, user);
+    }
+  )
+);
 
 // User login strategy
 passport.use(
@@ -79,7 +85,6 @@ passport.use(
   })
 );
 
-
 // Serialize and deserialize user
 passport.serializeUser(function (user, done) {
   done(null, user);
@@ -90,11 +95,11 @@ passport.deserializeUser(async function (serializedUser, done) {
     const userInstance = await User.findByPk(serializedUser.id);
     if (userInstance) return done(null, userInstance);
 
-    const organization = await Organization.findByPk(serializedUser.id);
-    if (organization) return done(null, organization);
+    // const organization = await Organization.findByPk(serializedUser.id);
+    // if (organization) return done(null, organization);
 
-    const admin = await Admin.findByPk(serializedUser.id);
-    if (admin) return done(null, admin);
+    // const admin = await Admin.findByPk(serializedUser.id);
+    // if (admin) return done(null, admin);
 
     return done(new Error("User not found"));
   } catch (err) {
@@ -127,11 +132,11 @@ passport.deserializeUser(async function (serializedUser, done) {
     const userInstance = await User.findByPk(serializedUser.id);
     if (userInstance) return done(null, userInstance);
 
-    const organization = await Organization.findByPk(serializedUser.id);
-    if (organization) return done(null, organization);
+    // const organization = await Organization.findByPk(serializedUser.id);
+    // if (organization) return done(null, organization);
 
-    const admin = await Admin.findByPk(serializedUser.id);
-    if (admin) return done(null, admin);
+    // const admin = await Admin.findByPk(serializedUser.id);
+    // if (admin) return done(null, admin);
 
     return done(new Error("User not found"));
   } catch (err) {
