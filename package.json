@@ -27,6 +27,7 @@
     "nodemon": "^3.1.0",
     "passport": "^0.7.0",
     "passport-facebook": "^3.0.0",
+    "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
     "process": "^0.11.10",
     "pusher": "^5.2.0",

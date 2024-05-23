@@ -15,6 +15,7 @@ const injectEnvVariables = require("./config/injectenv");
 const setupCronJob = require("./config/cronjob");
 let MySQLStore = require("express-mysql-session")(session);
 const passportImp = require("./config/passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
 var cors = require("cors");
 require("dotenv").config();
 const proxy = require('http-proxy')

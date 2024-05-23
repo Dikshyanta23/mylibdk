@@ -3,6 +3,7 @@ const LocalStrategy = require("passport-local").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;
 const bcrypt = require("bcryptjs");
 const { User, Admin } = require("../models");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 const FACEBOOK_APP_ID = '776536324264708';
 const FACEBOOK_APP_SECRET = 'a21340a8d9ae34765972f1ee0839e6cd';
@@ -77,6 +78,43 @@ passport.use(
   })
 );
 
+
+// Serialize and deserialize user
+passport.serializeUser(function (user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(async function (serializedUser, done) {
+  try {
+    const userInstance = await User.findByPk(serializedUser.id);
+    if (userInstance) return done(null, userInstance);
+
+    const organization = await Organization.findByPk(serializedUser.id);
+    if (organization) return done(null, organization);
+
+    const admin = await Admin.findByPk(serializedUser.id);
+    if (admin) return done(null, admin);
+
+    return done(new Error("User not found"));
+  } catch (err) {
+    return done(err);
+  }
+});
+
+// Google login strategy
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
+    },
+    function (accessToken, refreshToken, profile, done) {
+      // Here, you would check if the user already exists in your database
+      return done(null, profile);
+    }
+  )
+);
 
 // Serialize and deserialize user
 passport.serializeUser(function (user, done) {

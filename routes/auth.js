@@ -53,33 +53,35 @@ router.get("/login", notAuthenticated, (req, res) => {
 //login submit
 router.post("/login", notAuthenticated, async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ where: { email: email } });
 
-  if (!user) {
-    return res.json({ title: "no user" });
-  }
-  if (user.dataValues.suspended === true) {
-    return res.json({ title: "suspended" });
-  }
-  if (user.dataValues.isVerified === false) {
-    return res.json({ title: "not verified" });
-  }
-  bcrypt.compare(password, user.password, (err, result) => {
-    if (err) {
-      return res.json({ title: "password err" });
+  try {
+    const user = await User.findOne({ where: { email: email } });
+
+    if (!user) {
+      return res.json({ title: "no user" });
+    }
+    if (user.dataValues.suspended === true) {
+      return res.json({ title: "suspended" });
+    }
+    if (user.dataValues.isVerified === false) {
+      return res.json({ title: "not verified" });
     }
 
+    const result = await bcrypt.compare(password, user.password);
     if (!result) {
       return res.json({ title: "password" });
     }
-  });
-  req.logIn(user, (err) => {
-    if (err) {
-      return res.json({ title: "login error" });
-    } else {
+
+    req.logIn(user, (err) => {
+      if (err) {
+        return res.json({ title: "login error" });
+      }
       return res.json({ title: "success" });
-    }
-  });
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ title: "server error" });
+  }
 });
 
 //register page
