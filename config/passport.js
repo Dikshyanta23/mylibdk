@@ -2,8 +2,24 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;
 const bcrypt = require("bcryptjs");
-const { User, Admin } = require("../models");
+const { User } = require("../models");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+
+function generateRandomString(length) {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+async function hashPassword(password) {
+  const salt = await bcrypt.genSalt(10);
+  const hashedPass = await bcrypt.hash(password, salt);
+  return hashedPass;
+}
 
 passport.use(
   new FacebookStrategy(
@@ -14,26 +30,26 @@ passport.use(
       profileFields: ["id", "displayName", "picture.type(large)", "email"],
     },
     async function (accessToken, refreshToken, profile, done) {
-      // Here, you can handle the user profile data and create/update the user in your database
-      // For example:
-      // console.log("came here");
-      // console.log(profile);
-
-      const [user, created] = await User.findOrCreate({
-        where: { id: profile.id },
-        defaults: {
-          displayName: profile.displayName,
-          email: profile.emails ? profile.emails[0].value : null,
-          // Add any other default values you want to set
-        },
-      });
-
-      return done(null, user);
+      try {
+        const user = await User.findOne({ where: { id: profile.id } });
+        if (user) {
+          return done(null, user);
+        } else {
+          const newUser = await User.create({
+            id: profile.id,
+            fullName: profile.displayName,
+            email: profile.emails[0].value,
+            password: await hashPassword(generateRandomString(8)),
+          });
+          return done(null, newUser);
+        }
+      } catch (error) {
+        return done(error, null);
+      }
     }
   )
 );
 
-// User login strategy
 passport.use(
   "user-login",
   new LocalStrategy({ usernameField: "email" }, (email, password, done) => {
@@ -43,7 +59,6 @@ passport.use(
           var err = "no user";
           return done(err);
         }
-        // Compare the password using bcrypt
         bcrypt.compare(password, user.password, (err, result) => {
           if (err) console.log(err);
           if (!result) {
@@ -59,55 +74,6 @@ passport.use(
   })
 );
 
-// Admin login strategy
-passport.use(
-  "admin-login",
-  new LocalStrategy({ usernameField: "email" }, (email, password, done) => {
-    Admin.findOne({ where: { email: email } })
-      .then((admin) => {
-        if (!admin) {
-          var err = "no admin";
-          return done(err);
-        }
-        // Compare the password using bcrypt
-        bcrypt.compare(password, admin.password, (err, result) => {
-          if (err) console.log(err);
-          if (!result) {
-            var err = "password mismatch";
-            return done(err);
-          }
-          return done(null, admin);
-        });
-      })
-      .catch((err) => {
-        return done(err);
-      });
-  })
-);
-
-// Serialize and deserialize user
-passport.serializeUser(function (user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(async function (serializedUser, done) {
-  try {
-    const userInstance = await User.findByPk(serializedUser.id);
-    if (userInstance) return done(null, userInstance);
-
-    // const organization = await Organization.findByPk(serializedUser.id);
-    // if (organization) return done(null, organization);
-
-    // const admin = await Admin.findByPk(serializedUser.id);
-    // if (admin) return done(null, admin);
-
-    return done(new Error("User not found"));
-  } catch (err) {
-    return done(err);
-  }
-});
-
-// Google login strategy
 passport.use(
   new GoogleStrategy(
     {
@@ -115,30 +81,40 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: process.env.GOOGLE_CALLBACK_URL,
     },
-    function (accessToken, refreshToken, profile, done) {
-      // Here, you would check if the user already exists in your database
-      return done(null, profile);
+    async function (token, tokenSecret, profile, done) {
+      try {
+        const user = await User.findOne({ where: { id: profile.id } });
+        if (user) {
+          return done(null, user);
+        } else {
+          const newUser = await User.create({
+            id: profile.id,
+            fullName: profile.displayName,
+            email: profile.emails[0].value,
+            password: await hashPassword(generateRandomString(8)),
+          });
+
+          return done(null, newUser);
+        }
+      } catch (error) {
+        return done(error, null);
+      }
     }
   )
 );
 
-// Serialize and deserialize user
 passport.serializeUser(function (user, done) {
-  done(null, user);
+  done(null, { id: user.id });
 });
 
 passport.deserializeUser(async function (serializedUser, done) {
   try {
     const userInstance = await User.findByPk(serializedUser.id);
-    if (userInstance) return done(null, userInstance);
-
-    // const organization = await Organization.findByPk(serializedUser.id);
-    // if (organization) return done(null, organization);
-
-    // const admin = await Admin.findByPk(serializedUser.id);
-    // if (admin) return done(null, admin);
-
-    return done(new Error("User not found"));
+    if (userInstance) {
+      return done(null, userInstance);
+    } else {
+      return done(new Error("User not found"));
+    }
   } catch (err) {
     return done(err);
   }

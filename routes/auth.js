@@ -10,13 +10,33 @@ const zlib = require("zlib");
 const router = express.Router();
 
 // Initiate Facebook login
-router.get('/auth/facebook', passport.authenticate('facebook', { scope: 'email' }));
+router.get(
+  "/auth/facebook",
+  passport.authenticate("facebook", { scope: "email" })
+);
 
 // Facebook callback URL
-router.get('/auth/facebook/callback', passport.authenticate('facebook', {
-  successRedirect: '/dashboard',
-  failureRedirect: '/login'
-}));
+router.get(
+  "/auth/facebook/callback",
+  passport.authenticate("facebook", {
+    successRedirect: "/dashboard",
+    failureRedirect: "/login",
+  })
+);
+
+router.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get(
+  "/oauth2callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  function (req, res) {
+    // Successful authentication, redirect home.
+    res.redirect("/dashboard");
+  }
+);
 
 //contact page
 router.get("/message", (req, res) => {
