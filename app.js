@@ -15,10 +15,11 @@ const injectEnvVariables = require("./config/injectenv");
 const setupCronJob = require("./config/cronjob");
 let MySQLStore = require("express-mysql-session")(session);
 const passportImp = require("./config/passport");
+const flash = require("connect-flash");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 var cors = require("cors");
 require("dotenv").config();
-const proxy = require('http-proxy')
+const proxy = require("http-proxy");
 
 //middleware
 app.use(express.json());
@@ -61,6 +62,7 @@ app.use(
   })
 );
 
+app.use(flash());
 //passport session
 app.use(passport.initialize());
 app.use(passport.session());
@@ -71,9 +73,6 @@ setupCronJob();
 //middleware
 app.use("/", authRoutes);
 app.use("/dashboard", dashboardRoute);
-
-
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

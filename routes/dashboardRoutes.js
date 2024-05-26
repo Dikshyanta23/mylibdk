@@ -1,7 +1,14 @@
 const express = require("express");
 const { isAdmin } = require("../config/authentication");
 const router = express.Router();
-const { User, Book, Message, Transaction, Rate } = require("../models");
+const {
+  User,
+  Book,
+  Message,
+  Transaction,
+  Rate,
+  Payment,
+} = require("../models");
 const { requireAuth } = require("../config/authentication");
 const upload = require("../config/multer");
 const user = require("../models/user");
@@ -517,16 +524,18 @@ router.patch("/:userEmail", requireAuth, isAdmin, async (req, res) => {
   if (type === "admin") {
     const primaryAdmin = user.dataValues.isAdmin;
     user.update({ isAdmin: !primaryAdmin }, { where: { email: userEmail } });
-    message = `User ${userEmail} has been ${primaryAdmin === true ? "revoked" : "granted"
-      } admin privileges`;
+    message = `User ${userEmail} has been ${
+      primaryAdmin === true ? "revoked" : "granted"
+    } admin privileges`;
   } else if (type === "suspend") {
     const primarySuspend = user.dataValues.suspended;
     user.update(
       { suspended: !primarySuspend },
       { where: { email: userEmail } }
     );
-    message = `You have has been ${primarySuspend === true ? "unsuspended" : "suspended"
-      }`;
+    message = `You have has been ${
+      primarySuspend === true ? "unsuspended" : "suspended"
+    }`;
   }
   await user.save();
 
@@ -1231,4 +1240,5 @@ router.get("/recommendations", requireAuth, async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 });
+
 module.exports = router;

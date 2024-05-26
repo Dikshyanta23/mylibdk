@@ -4,6 +4,9 @@ const FacebookStrategy = require("passport-facebook").Strategy;
 const bcrypt = require("bcryptjs");
 const { User } = require("../models");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const GitHubStrategy = require("passport-github").Strategy;
+const TwitterStrategy = require("passport-twitter").Strategy;
+const axios = require("axios");
 
 function generateRandomString(length) {
   const characters =
@@ -31,15 +34,27 @@ passport.use(
     },
     async function (accessToken, refreshToken, profile, done) {
       try {
-        const user = await User.findOne({ where: { id: profile.id } });
+        if (!profile.emails || profile.emails.length === 0) {
+          return done(null, false, { message: "No email found" });
+        }
+        const user = await User.findOne({ where: { facebookId: profile.id } });
         if (user) {
           return done(null, user);
+        }
+        const userWithSameEmail = await User.findOne({
+          where: { email: profile.emails[0].value },
+        });
+        if (userWithSameEmail) {
+          const updatedUser = await userWithSameEmail.update({
+            facebookId: profile.id,
+          });
+          const savedUser = await userWithSameEmail.save();
+          return done(null, userWithSameEmail);
         } else {
           const newUser = await User.create({
-            id: profile.id,
             fullName: profile.displayName,
             email: profile.emails[0].value,
-            password: await hashPassword(generateRandomString(8)),
+            facebookId: profile.id,
           });
           return done(null, newUser);
         }
@@ -80,20 +95,112 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: process.env.GOOGLE_CALLBACK_URL,
+      scope: ["profile", "email"],
+    },
+    async function (token, tokenSecret, profile, done) {
+      console.log("google Profile:", profile);
+      try {
+        const user = await User.findOne({ where: { googleId: profile.id } });
+        if (user) {
+          return done(null, user);
+        }
+        const userWithSameEmail = await User.findOne({
+          where: { email: profile.emails[0].value },
+        });
+        if (userWithSameEmail) {
+          userWithSameEmail.googleId = profile.id;
+          const updatedUser = await userWithSameEmail.save();
+          return done(null, updatedUser);
+        } else {
+          const newUser = await User.create({
+            fullName: profile.displayName,
+            email: profile.emails[0].value,
+            googleId: profile.id,
+          });
+          return done(null, newUser);
+        }
+      } catch (error) {
+        console.error("Error during authentication:", error);
+        return done(error, null);
+      }
+    }
+  )
+);
+passport.use(
+  new GitHubStrategy(
+    {
+      clientID: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      callbackURL: process.env.GITHUB_CALLBACK_URL,
+      scope: ["user:email"],
+    },
+    async function (accessToken, refreshToken, profile, done) {
+      console.log(profile);
+
+      try {
+        if (!profile.emails || profile.emails.length === 0) {
+          return done(null, false, { message: "No email found" });
+        }
+        // Find or create user
+        let user = await User.findOne({ where: { githubId: profile.id } });
+        if (user) {
+          return done(null, user);
+        }
+        const userWithSameEmail = await User.findOne({
+          where: { email: email },
+        });
+        if (userWithSameEmail) {
+          const updatedUser = await userWithSameEmail.update({
+            githubId: profile.id,
+          });
+          const savedUser = await userWithSameEmail.save();
+          return done(null, userWithSameEmail);
+        } else {
+          user = await User.create({
+            githubId: profile.id,
+            fullName: profile.displayName,
+            email: profile.emails[0].value,
+          });
+          return done(null, user);
+        }
+      } catch (error) {
+        console.error("Error during GitHub authentication:", error);
+        return done(error, null);
+      }
+    }
+  )
+);
+
+passport.use(
+  new TwitterStrategy(
+    {
+      consumerKey: process.env.TWITTER_API_KEY,
+      consumerSecret: process.env.TWITTER_SECRET_KEY,
+      callbackURL: process.env.TWITTER_CALLBACK_URL,
+      includeEmail: true,
     },
     async function (token, tokenSecret, profile, done) {
       try {
-        const user = await User.findOne({ where: { id: profile.id } });
+        console.log("Twitter profile:", profile);
+        const user = await User.findOne({ where: { twitterId: profile.id } });
         if (user) {
           return done(null, user);
+        }
+        const userWithSameEmail = await User.findOne({
+          where: { email: profile.emails[0].value },
+        });
+        if (userWithSameEmail) {
+          const updatedUser = await userWithSameEmail.update({
+            twitterId: profile.id,
+          });
+          const savedUser = await userWithSameEmail.save();
+          return done(null, userWithSameEmail);
         } else {
           const newUser = await User.create({
-            id: profile.id,
+            twitterId: profile.id,
             fullName: profile.displayName,
             email: profile.emails[0].value,
-            password: await hashPassword(generateRandomString(8)),
           });
-
           return done(null, newUser);
         }
       } catch (error) {
