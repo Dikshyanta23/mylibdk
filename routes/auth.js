@@ -10,13 +10,67 @@ const zlib = require("zlib");
 const router = express.Router();
 
 // Initiate Facebook login
-router.get('/auth/facebook', passport.authenticate('facebook', { scope: 'email' }));
+router.get(
+  "/auth/facebook",
+  passport.authenticate("facebook", { scope: "email" })
+);
 
 // Facebook callback URL
-router.get('/auth/facebook/callback', passport.authenticate('facebook', {
-  successRedirect: '/dashboard',
-  failureRedirect: '/login'
-}));
+router.get(
+  "/auth/facebook/callback",
+  passport.authenticate("facebook", {
+    failureRedirect: "/auth/github/failure",
+    failureFlash: true,
+  }),
+  (req, res) => {
+    res.redirect("/dashboard");
+  }
+);
+
+router.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get(
+  "/oauth2callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  function (req, res) {
+    // Successful authentication, redirect home.
+    res.redirect("/dashboard");
+  }
+);
+
+router.get("/auth/github", passport.authenticate("github", { scope: "email" }));
+
+// Callback route
+router.get(
+  "/github/callback",
+  passport.authenticate("github", {
+    failureRedirect: "/auth/github/failure",
+    failureFlash: true,
+  }),
+  (req, res) => {
+    // Successful authentication, redirect to profile page
+    res.redirect("/dashboard");
+  }
+);
+router.get("/auth/github/failure", (req, res) => {
+  const message = req.flash("error")[0];
+  res.render("failure", { message });
+});
+
+router.get("/auth/twitter", passport.authenticate("twitter"));
+
+// Callback route
+router.get(
+  "/twitter/callback",
+  passport.authenticate("twitter", { failureRedirect: "/login" }),
+  (req, res) => {
+    // Successful authentication, redirect to profile page
+    res.redirect("/dashboard");
+  }
+);
 
 //contact page
 router.get("/message", (req, res) => {
