@@ -16,8 +16,8 @@ passport.use(
     async function (accessToken, refreshToken, profile, done) {
       // Here, you can handle the user profile data and create/update the user in your database
       // For example:
-      // console.log("came here");
-      // console.log(profile);
+      console.log("came here");
+      console.log(profile);
 
       const [user, created] = await User.findOrCreate({
         where: { id: profile.id },
