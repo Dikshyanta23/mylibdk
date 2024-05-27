@@ -215,14 +215,21 @@
             <div id="loading" class="lds-dual-ring" style="display: none"></div>
             <span id="noloading">Review</span>
           </button>
+          <button onclick="handleEsewaClick(event, '<%= book.id %>')">
+            Get book with esewa
+          </button>
         </div>
         <!-- Buttons -->
       </div>
       <% }) }%>
-      <button onclick="makereq(event)">Khalti</button>
     </div>
   </body>
   <script>
+    function handleEsewaClick(e, bookId) {
+      e.preventDefault();
+      const url = `http://localhost:5000/dashboard/esewaorder/${bookId}`;
+      window.location.href = url;
+    }
     async function makereq(e, payment_method) {
       e.preventDefault();
       const url = "https://a.khalti.com/api/v2/epayment/initiate/";
