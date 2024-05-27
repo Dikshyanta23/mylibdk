@@ -74,7 +74,62 @@ setupCronJob();
 app.use("/", authRoutes);
 app.use("/dashboard", dashboardRoute);
 
+// Endpoint to initiate Khalti payment
+app.post('/initiate-payment', async (req, res) => {
+  const paymentData = {
+    return_url: "http://localhost:5000/dashboard",
+    website_url: "http://localhost:5000",
+    amount: 1300,
+    purchase_order_id: "test12",
+    purchase_order_name: "test",
+    customer_info: {
+      name: "Khalti Bahadur",
+      email: "example@gmail.com",
+      phone: "9800000123",
+    },
+    amount_breakdown: [
+      {
+        label: "Mark Price",
+        amount: 1000,
+      },
+      {
+        label: "VAT",
+        amount: 300,
+      },
+    ],
+    product_details: [
+      {
+        identity: "1234567890",
+        name: "Khalti logo",
+        total_price: 1300,
+        quantity: 1,
+        unit_price: 1300,
+      },
+    ],
+    merchant_username: "merchant_name",
+    merchant_extra: "merchant_extra",
+  };
+
+  try {
+    const response = await axios.post('https://a.khalti.com/api/v2/epayment/initiate/', paymentData, {
+      headers: {
+        Authorization: 'key test_secret_key_caa019f6bf98418eb7722339029d429c',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error initiating payment:', error);
+    res.status(500).json({ error: 'Failed to initiate payment' });
+  }
+});
+
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+
