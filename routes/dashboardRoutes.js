@@ -1273,17 +1273,27 @@ router.get("/esewa/verify/:bookId", async (req, res) => {
 });
 const crypto = require("crypto");
 
-function generateHash(message, secret) {
-  return crypto.createHmac("sha256", secret).update(message).digest("base64");
+function generateHash(message) {
+
+  const secret = "8gBm/:&EnhH.1/q"
+
+  const hmac = crypto.createHmac('sha256', secret)
+  hmac.update(message)
+
+  const hashInBase64 = hmac.digest("base64")
+
+  return hashInBase64
 }
 
 router.get("/esewaorder/:bookId", async (req, res) => {
   const bookId = req.params.bookId;
   const book = await Book.findOne({ where: { id: bookId } });
-  const message = `total_amount=${book.price},transaction_uuid=${book.id},product_code=EPAYTEST`;
-  const hash = generateHash(message, process.env.ESEWA_SECRET);
+  const message = `total_amount=${book.price + 10},transaction_uuid=${book.id},product_code=EPAYTEST`;
+  const hash = generateHash(message);
 
-  res.render("esewaOrder", {
+  console.log("hash", hash);
+
+  return res.render("esewaOrder", {
     book: book,
     user: req.user,
     hash: hash,
