@@ -1239,4 +1239,55 @@ router.get("/recommendations", requireAuth, async (req, res) => {
   }
 });
 
+router.get("/esewa/verify/:bookId", async (req, res) => {
+  const bookId = req.params.bookId;
+  const data = req.query.data;
+  let decodedString = atob(data);
+  const obj = JSON.parse(decodedString);
+  decodedString = JSON.parse(decodedString);
+
+  switch (decodedString.status) {
+    case "COMPLETE":
+      try {
+        const payment = await Payment.create({
+          bookId: bookId,
+          userId: req.user.id,
+          amount: decodedString.total_amount,
+          paymentDate: new Date(),
+          status: decodedString.status,
+        });
+        res.redirect("http://localhost:5000/dashboard/allbooks");
+      } catch (error) {
+        console.log(error);
+      }
+    case "PENDING":
+      res.redirect("http://localhost:5000/dashboard/allbooks");
+      break;
+    case "ERROR":
+      res.redirect("http://localhost:5000/dashboard/allbooks");
+      break;
+    case "FULL_REFUND":
+      res.redirect("http://localhost:5000/dashboard/allbooks");
+      break;
+  }
+});
+const crypto = require("crypto");
+
+function generateHash(message, secret) {
+  return crypto.createHmac("sha256", secret).update(message).digest("base64");
+}
+
+router.get("/esewaorder/:bookId", async (req, res) => {
+  const bookId = req.params.bookId;
+  const book = await Book.findOne({ where: { id: bookId } });
+  const message = `total_amount=${book.price},transaction_uuid=${book.id},product_code=EPAYTEST`;
+  const hash = generateHash(message, process.env.ESEWA_SECRET);
+
+  res.render("esewaOrder", {
+    book: book,
+    user: req.user,
+    hash: hash,
+  });
+});
+
 module.exports = router;
