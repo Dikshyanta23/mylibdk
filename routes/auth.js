@@ -6,8 +6,13 @@ const { notAuthenticated } = require("../config/authentication");
 const { requireAuth } = require("../config/authentication");
 const passport = require("../config/passport");
 const zlib = require("zlib");
+const { initializeRedisClient } = require("../config/reddis");
+const { trackLoginAttempts } = require("../config/trackLogin");
 
 const router = express.Router();
+
+const MAX_ATTEMPTS = 2;
+const LOCKOUT_TIME = 30 * 1000; // 1 hour
 
 // Initiate Facebook login
 router.get(

@@ -1,5 +1,3 @@
-<!-- views/login.ejs -->
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -133,6 +131,39 @@
         cursor: pointer;
         margin-top: 10px;
       }
+      .lginbtns {
+        margin-top: 15px;
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* Adds space between the buttons */
+      }
+
+      .lginbtns a {
+        display: inline-block;
+        padding: 10px 20px;
+        color: white;
+        text-decoration: none;
+        text-align: center;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+
+      .lginbtns a[href*="facebook"] {
+        background-color: blue;
+      }
+
+      .lginbtns a[href*="google"] {
+        background-color: grey;
+      }
+
+      .lginbtns a[href*="github"] {
+        background-color: black;
+      }
+
+      .lginbtns a[href*="twitter"] {
+        background-color: lightblue;
+      }
     </style>
   </head>
 
@@ -175,11 +206,12 @@
         </button>
       </form>
       <p>Don't have an account? <a href="/register">Register here</a>.</p>
-
-      <a href="/auth/facebook">Login with fb</a>
-      <a href="/auth/google">Login with google</a>
-      <a href="/auth/github">Login with github</a>
-      <a href="/auth/twitter">Login with twitter</a>
+      <div class="lginbtns">
+        <a href="/auth/facebook">Login with fb</a>
+        <a href="/auth/google">Login with google</a>
+        <a href="/auth/github">Login with github</a>
+        <a href="/auth/twitter">Login with twitter</a>
+      </div>
     </div>
   </body>
 
@@ -229,11 +261,7 @@
         toast.addEventListener("mouseleave", Swal.resumeTimer);
       },
     });
-    // $("#fbbtn").on("click", (e) => {
-    //   return fetch("/auth/facebook", {
-    //     method: "GET",
-    //   });
-    // });
+
     $("#loginBtn").on("click", (e) => {
       e.preventDefault();
       $("#loading").hide();
@@ -381,6 +409,21 @@
             return Toast.fire({
               icon: "error",
               title: `There is an issue. Please check again later.!`,
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "lockout") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Swal.fire({
+              title: "Account Locked",
+              text: "Your account has been locked due to multiple failed login attempts. Please try again later or contact support.",
+              icon: "error",
+              confirmButtonColor: "#014B92",
             }).then(() => {
               $("#loginBtn").prop("disabled", false);
               $("#loading").hide();

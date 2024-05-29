@@ -41,6 +41,7 @@
       /* Button styles */
       .btn-container {
         display: flex;
+        gap: 10px;
         justify-content: space-between; /* Buttons evenly spaced */
         margin-top: 15px; /* Add margin between text and buttons */
       }
@@ -66,6 +67,9 @@
       }
       .review-btn {
         background-color: #daa520;
+      }
+      .esewabtn {
+        background-color: green;
       }
       .delete-btn {
         background-color: #f44336;
@@ -133,7 +137,8 @@
     <script></script>
   </head>
   <body>
-    <%- include('nav') %> <% const {isAdmin} = user.dataValues || 'false'%>
+    <%- include('nav') %> <% const {isAdmin, bookArray, waitlist } =
+    user.dataValues || 'false'%>
     <h1>Book Catalog</h1>
     <div class="search-container">
       <input
@@ -215,8 +220,13 @@
             <div id="loading" class="lds-dual-ring" style="display: none"></div>
             <span id="noloading">Review</span>
           </button>
-          <button onclick="handleEsewaClick(event, '<%= book.id %>')">
-            Get book with esewa
+          <button
+            class="btn esewabtn"
+            id="esewaBtn"
+            onclick="handleEsewaClick(event, '<%= book.id %>', '<%= book.stock %>', '<%=array%>')"
+          >
+            <div id="loading" class="lds-dual-ring" style="display: none"></div>
+            <span id="noloading">Esewa Payment</span>
           </button>
         </div>
         <!-- Buttons -->
@@ -225,8 +235,31 @@
     </div>
   </body>
   <script>
-    function handleEsewaClick(e, bookId) {
+    function handleEsewaClick(e, bookId, bookStock, bookArray) {
       e.preventDefault();
+      console.log(typeof bookArray);
+      if (bookStock == 0) {
+        return Toast2.fire({
+          icon: "error",
+          title: "Book is out of stock",
+        });
+      }
+      if (bookArray !== "") {
+        const isBookInBookarray = bookArray.filter((book) => book.id == bookId);
+        const valuecontainer = isBookInBookarray != [];
+        if (valuecontainer) {
+          return Toast2.fire({
+            icon: "error",
+            title: "Book already in cart",
+          });
+        }
+        if (bookArray.length >= 3) {
+          return Toast2.fire({
+            icon: "error",
+            title: "Can't borrow more than 3 books",
+          });
+        }
+      }
       const url = `http://localhost:5000/dashboard/esewaorder/${bookId}`;
       window.location.href = url;
     }

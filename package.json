@@ -4,7 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-redis": "C:\\reddis\\redis-server.exe",
+    "start": "concurrently \"npm run start-redis\" \"nodemon app.js\"",
+    "stop-redis": "killall redis-server"
   },
   "keywords": [],
   "author": "",
@@ -37,12 +40,14 @@
     "process": "^0.11.10",
     "pusher": "^5.2.0",
     "query-string": "^9.0.0",
+    "redis": "^4.6.14",
     "sequelize": "^6.37.3",
     "sonner": "^1.4.41",
     "uuid": "^9.0.1",
     "zlib": "^1.0.5"
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "sequelize-cli": "^6.6.2"
   }
 }

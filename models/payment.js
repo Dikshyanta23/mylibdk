@@ -24,10 +24,6 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      pidx: {
-        type: DataTypes.STRING,
-        unique: true,
-      },
       bookId: {
         type: DataTypes.UUID,
         allowNull: false,
@@ -37,13 +33,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       amount: DataTypes.INTEGER,
-
-      dataVerification: DataTypes.JSON,
-      apiQuery: DataTypes.JSON,
-      paymentGateway: {
-        type: DataTypes.STRING,
-        required: true,
-      },
       status: {
         type: DataTypes.STRING,
         defaultValue: "pending",

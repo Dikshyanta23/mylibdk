@@ -335,11 +335,15 @@ router.get("/allbooks", requireAuth, async (req, res) => {
   // console.log(req);
   const allBooks = await Book.findAll();
   const newBooks = await drillReviews(allBooks);
+  const user = await User.findOne({ where: { id: req.user.id } });
+
   // return res.json({ books: allBooks });
   const messages = await Message.findAll({ where: { read: false } });
   const notifications = filterNotifications(req.user.notification) || [];
+
   return res.render("allbooks", {
     books: newBooks,
+    array: user.dataValues.bookArray || [],
     messages: messages,
     user: req.user,
     searchTerm: "",
@@ -524,16 +528,18 @@ router.patch("/:userEmail", requireAuth, isAdmin, async (req, res) => {
   if (type === "admin") {
     const primaryAdmin = user.dataValues.isAdmin;
     user.update({ isAdmin: !primaryAdmin }, { where: { email: userEmail } });
-    message = `User ${userEmail} has been ${primaryAdmin === true ? "revoked" : "granted"
-      } admin privileges`;
+    message = `User ${userEmail} has been ${
+      primaryAdmin === true ? "revoked" : "granted"
+    } admin privileges`;
   } else if (type === "suspend") {
     const primarySuspend = user.dataValues.suspended;
     user.update(
       { suspended: !primarySuspend },
       { where: { email: userEmail } }
     );
-    message = `You have has been ${primarySuspend === true ? "unsuspended" : "suspended"
-      }`;
+    message = `You have has been ${
+      primarySuspend === true ? "unsuspended" : "suspended"
+    }`;
   }
   await user.save();
 
@@ -1241,10 +1247,11 @@ router.get("/recommendations", requireAuth, async (req, res) => {
 
 router.get("/esewa/verify/:bookId", async (req, res) => {
   const bookId = req.params.bookId;
+  const book = await Book.findOne({ where: { id: bookId } });
   const data = req.query.data;
   let decodedString = atob(data);
-  const obj = JSON.parse(decodedString);
-  decodedString = JSON.parse(decodedString);
+  const obj = await JSON.parse(decodedString);
+  decodedString = await JSON.parse(decodedString);
 
   switch (decodedString.status) {
     case "COMPLETE":
@@ -1256,47 +1263,97 @@ router.get("/esewa/verify/:bookId", async (req, res) => {
           paymentDate: new Date(),
           status: decodedString.status,
         });
-        res.redirect("http://localhost:5000/dashboard/allbooks");
+        const user = await User.findOne({ where: { id: req.user.id } });
+        const updatedUser = await user.update({
+          bookArray: [
+            ...user.bookArray,
+            { id: bookId, fineLevied: false, returnDate: new Date() },
+          ],
+        });
+        const updatedBook = await book.update({ stock: book.stock - 1 });
+
+        const savedUser = await user.save();
+        const savedBook = await book.save();
+
+        res.render("esewaHandler", { message: "Payment successful" });
+        break;
       } catch (error) {
         console.log(error);
       }
     case "PENDING":
-      res.redirect("http://localhost:5000/dashboard/allbooks");
+      res.render("esewaHandler", { message: "Payment pending" });
       break;
     case "ERROR":
-      res.redirect("http://localhost:5000/dashboard/allbooks");
+      res.redirect("esewaHandler", { message: "payment error" });
       break;
     case "FULL_REFUND":
-      res.redirect("http://localhost:5000/dashboard/allbooks");
+      res.redirect("esewaHandler", { message: "full refund" });
       break;
   }
 });
 const crypto = require("crypto");
 
 function generateHash(message) {
+  const secret = "8gBm/:&EnhH.1/q";
 
-  const secret = "8gBm/:&EnhH.1/q"
+  const hmac = crypto.createHmac("sha256", secret);
+  hmac.update(message);
 
-  const hmac = crypto.createHmac('sha256', secret)
-  hmac.update(message)
+  const hashInBase64 = hmac.digest("base64");
 
-  const hashInBase64 = hmac.digest("base64")
-
-  return hashInBase64
+  return hashInBase64;
 }
 
 router.get("/esewaorder/:bookId", async (req, res) => {
   const bookId = req.params.bookId;
+  // console.log(bookId);
+  const transuuid = uuidv4();
   const book = await Book.findOne({ where: { id: bookId } });
-  const message = `total_amount=${book.price + 10},transaction_uuid=${book.id},product_code=EPAYTEST`;
+  const user = await User.findOne({ where: { id: req.user.id } });
+  const message = `total_amount=${
+    book.price + 10
+  },transaction_uuid=${transuuid},product_code=EPAYTEST`;
   const hash = generateHash(message);
-
-  console.log("hash", hash);
 
   return res.render("esewaOrder", {
     book: book,
     user: req.user,
     hash: hash,
+    transuuid: transuuid,
+  });
+});
+
+async function drillName(list) {
+  const newList = await Promise.all(
+    list.map(async (item) => {
+      const book = await Book.findOne({
+        where: { id: item.dataValues.bookId },
+      });
+      item.dataValues.bookName = book.dataValues.name;
+      return item;
+    })
+  );
+  return newList;
+}
+
+router.get("/esewa/history", requireAuth, async (req, res) => {
+  const user = await User.findOne({ where: { id: req.user.id } });
+  const payments = await Payment.findAll({ where: { userId: req.user.id } });
+
+  const messages = await Message.findAll({ where: { read: false } });
+  const notifications = filterNotifications(req.user.notification) || [];
+  const newPayments = await drillName(payments);
+  newPayments.sort((a, b) => {
+    const dateA = new Date(a.paymentDate);
+    const dateB = new Date(b.paymentDate);
+    return dateA - dateB;
+  });
+  console.log(newPayments);
+  return res.render("esewaPayHistory", {
+    user: req.user,
+    messages: messages,
+    notifications: notifications,
+    payments: newPayments || [],
   });
 });
 
