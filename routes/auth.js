@@ -1,5 +1,5 @@
 const express = require("express");
-const { User, Message } = require("../models");
+const { User, Message, LoginAttempts } = require("../models");
 const bcrypt = require("bcryptjs");
 const client = require("../config/mailer");
 const { notAuthenticated } = require("../config/authentication");
@@ -8,11 +8,12 @@ const passport = require("../config/passport");
 const zlib = require("zlib");
 const { initializeRedisClient } = require("../config/reddis");
 const { trackLoginAttempts } = require("../config/trackLogin");
+const { where } = require("sequelize");
 
 const router = express.Router();
 
 const MAX_ATTEMPTS = 2;
-const LOCKOUT_TIME = 30 * 1000; // 1 hour
+const LOCKOUT_TIME = 30 * 1000;
 
 // Initiate Facebook login
 router.get(
@@ -112,6 +113,10 @@ router.get("/login", notAuthenticated, (req, res) => {
 //login submit
 router.post("/login", notAuthenticated, async (req, res) => {
   const { email, password } = req.body;
+  const forwarded = req.headers["x-forwarded-for"];
+  const ip = forwarded
+    ? forwarded.split(",").shift()
+    : req.socket.remoteAddress;
 
   try {
     const user = await User.findOne({ where: { email: email } });
@@ -128,13 +133,87 @@ router.post("/login", notAuthenticated, async (req, res) => {
 
     const result = await bcrypt.compare(password, user.password);
     if (!result) {
+      // Track login attempts
+      const previousLoginAttempt = await LoginAttempts.findOne({
+        where: { email: email },
+      });
+      let isLimitCrossed = false;
+      if (previousLoginAttempt) {
+        if (previousLoginAttempt.dataValues.tries >= MAX_ATTEMPTS) {
+          const currentTimeat = Date.now();
+          if (
+            previousLoginAttempt.dataValues.triggerDate + LOCKOUT_TIME <
+            currentTimeat
+          ) {
+            const remainingTimeAt =
+              previousLoginAttempt.dataValues.triggerDate +
+              LOCKOUT_TIME -
+              currentTimeat;
+            return res.json({ title: "lockout", time: remainingTimeAt || 0 });
+          }
+          if (previousLoginAttempt.dataValues.tries % MAX_ATTEMPTS == 0) {
+            const updatedLoginAttempt = await previousLoginAttempt.update({
+              triggerDate: Date.now(),
+            });
+            isLimitCrossed = true;
+          }
+          isLimitCrossed = true;
+        }
+
+        const updatedLoginAttempt = await previousLoginAttempt.update({
+          tries: previousLoginAttempt.tries + 1,
+        });
+        const savedLoginAttempt = await updatedLoginAttempt.save();
+        if (!updatedLoginAttempt || !savedLoginAttempt) {
+          return res.json({ title: "save error" });
+        }
+      } else {
+        const newLoginAttempt = await LoginAttempts.create({
+          email: email,
+          tries: 1,
+          ipAddress: ip,
+          triggerDate: new Date().getTime(),
+        });
+        if (!newLoginAttempt) {
+          return res.json({ title: "create error" });
+        }
+      }
+      if (isLimitCrossed) {
+        const currentTime = Date.now();
+        const remainingTime =
+          previousLoginAttempt.dataValues.triggerDate +
+          LOCKOUT_TIME -
+          currentTime;
+        if (remainingTime <= 0) {
+          await previousLoginAttempt.destroy();
+          isLimitCrossed = false;
+        }
+        return res.json({ title: "locked", time: remainingTime || 0 });
+      }
       return res.json({ title: "password" });
     }
-
+    const successCurrentDate = Date.now();
+    const existingFailedAttempts = await LoginAttempts.findOne({
+      where: { email: email, ipAddress: ip },
+    });
+    if (existingFailedAttempts) {
+      if (
+        existingFailedAttempts.dataValues.triggerDate + LOCKOUT_TIME >
+        successCurrentDate
+      ) {
+        const successRemainingTime =
+          existingFailedAttempts.dataValues.triggerDate +
+          LOCKOUT_TIME -
+          successCurrentDate;
+        return res.json({ title: "locked", time: successRemainingTime || 0 });
+      }
+      await existingFailedAttempts.destroy();
+    }
     req.logIn(user, (err) => {
       if (err) {
         return res.json({ title: "login error" });
       }
+
       return res.json({ title: "success" });
     });
   } catch (error) {

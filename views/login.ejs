@@ -164,6 +164,16 @@
       .lginbtns a[href*="twitter"] {
         background-color: lightblue;
       }
+      #overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* semi-transparent background */
+        z-index: 1000; /* make sure it's on top */
+        display: none; /* hide the overlay by default */
+      }
     </style>
   </head>
 
@@ -214,7 +224,10 @@
       </div>
     </div>
   </body>
-
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+  </script>
   <script>
     function switchicon() {
       const eyehide = document.querySelector(".eyehide");
@@ -415,19 +428,18 @@
               $("#noloading").show();
             });
           }
-          if (data.title == "lockout") {
-            $("#loginBtn").prop("disabled", true);
-            $("#loading").show();
-            $("#noloading").hide();
-            return Swal.fire({
+          if (data.title == "locked") {
+            const flag = Number(data.time);
+
+            Swal.fire({
               title: "Account Locked",
-              text: "Your account has been locked due to multiple failed login attempts. Please try again later or contact support.",
+              text: `Your account has been locked due to multiple failed attempts, the screen shall freeze for ${Math.floor(
+                Number(flag) / 1000
+              )} seconds.`,
               icon: "error",
               confirmButtonColor: "#014B92",
             }).then(() => {
               $("#loginBtn").prop("disabled", false);
-              $("#loading").hide();
-              $("#noloading").show();
             });
           }
         });
