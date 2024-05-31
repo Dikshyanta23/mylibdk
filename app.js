@@ -12,7 +12,7 @@ require("./config/connection");
 
 const bodyParser = require("body-parser");
 const injectEnvVariables = require("./config/injectenv");
-const setupCronJob = require("./config/cronjob");
+const { setupCronJob, separateCronJob } = require("./config/cronjob");
 const MySQLStore = require("express-mysql-session")(session);
 const passportImp = require("./config/passport");
 const flash = require("connect-flash");
@@ -41,6 +41,7 @@ let activeUsers = 0;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname + "/public"));
+
 app.use(express.static(__dirname + "/assets"));
 app.use("/uploads", express.static("uploads"));
 app.use(passport.initialize());
@@ -95,6 +96,7 @@ app.use(passport.session());
 
 // Cronjob
 setupCronJob();
+separateCronJob();
 
 // Routes
 app.use("/", authRoutes);

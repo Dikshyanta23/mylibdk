@@ -240,6 +240,10 @@ router.post("/login", notAuthenticated, async (req, res) => {
         return res.json({ title: "locked", time: successRemainingTime || 0 });
       }
       await existingFailedAttempts.destroy();
+      const updatedUser = await user.update({
+        hertbeatTime: Date.now() + 10000,
+      });
+      const savedUser = await user.save();
     }
     req.logIn(user, (err) => {
       if (err) {
@@ -416,9 +420,11 @@ router.post("/register", notAuthenticated, async (req, res) => {
 });
 
 // Logout route handler
-router.post("/logout", requireAuth, async (req, res) => {
+router.post("/logout/", requireAuth, async (req, res) => {
   const userId = req.user.id;
+
   const user = await User.findOne({ where: { id: userId } });
+
   // Perform logout logic here
   req.logOut((err) => {
     if (err) {
@@ -546,6 +552,17 @@ router.post("/resend", notAuthenticated, (req, res) => {
 
     return res.json({ title: "success" });
   });
+});
+
+router.post("/heartbeat", async (req, res) => {
+  console.log(
+    "Received heartbeat from client at:",
+    new Date(req.body.timestamp)
+  );
+  const user = await User.findOne({ where: { id: req.user.id } });
+  const updatedUser = await user.update({ hertbeatTime: Date.now() });
+  const savedUser = await user.save();
+  res.sendStatus(200);
 });
 
 module.exports = router;

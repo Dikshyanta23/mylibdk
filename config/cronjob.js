@@ -3,6 +3,7 @@ const { User, Book } = require("../models");
 const master = process.env.SUPERUSER_ID;
 const { Op } = require("sequelize");
 const client = require("../config/mailer");
+const mysql = require("mysql2/promise");
 
 function replaceObjectById(id, listOfObjects, newObject) {
   for (let i = 0; i < listOfObjects.length; i++) {
@@ -18,6 +19,8 @@ function setupCronJob() {
     "0 2 * * *",
     async () => {
       try {
+        //for logging users out
+
         //for notifictaion
         const notificationUsers = await User.findAll({});
         const notificationTime = new Date().getTime();
@@ -381,4 +384,59 @@ function calculateFine(returnDate, currentDate, finePerDay) {
   return Math.abs(fineAmount);
 }
 
-module.exports = setupCronJob;
+function separateCronJob() {
+  cron.schedule(
+    "*/15 * * * * *", // Cron expression for every 15 seconds
+    async () => {
+      try {
+        const options = {
+          host: process.env.HOST,
+          port: 3306,
+          user: "root",
+          password: process.env.PASS,
+          database: process.env.DATABASE,
+        };
+        const connection = await mysql.createConnection(options);
+        try {
+          const [rows] = await connection.execute("SELECT * FROM sessions"); // Replace 'sessions' with your actual session table name
+
+          for (const row of rows) {
+            const jsonObject = JSON.parse(row.data);
+            const validId = jsonObject.passport?.user?.id;
+            if (validId && validId !== "undefined") {
+              try {
+                const user = await User.findOne({ where: { id: validId } });
+                if (user) {
+                  const hertbeatTime = user.dataValues.hertbeatTime;
+                  console.log(Date.now() - hertbeatTime);
+                  if (Date.now() - hertbeatTime > 10000) {
+                    await connection.execute(
+                      "DELETE FROM sessions WHERE session_id = ?",
+                      [row.session_id]
+                    );
+                    user.update({ hertbeatTime: null });
+                    user.save();
+                    console.log(`Deleted row with id ${row.session_id}`);
+                  }
+                }
+              } catch (error) {
+                console.error(
+                  `Error processing row with id ${row.session_id}:`,
+                  error
+                );
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error querying active sessions:", error);
+        } finally {
+          await connection.end();
+        }
+      } catch (error) {
+        console.error("Error in cron job:", error);
+      }
+    }
+  );
+}
+
+module.exports = { setupCronJob, separateCronJob };

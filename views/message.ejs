@@ -248,5 +248,18 @@
           });
       });
     </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      // Send a heartbeat signal to the server every 30 seconds
+      setInterval(function () {
+        fetch("/heartbeat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ timestamp: Date.now() }),
+        });
+      }, 10000); // 10 seconds
+    </script>
   </body>
 </html>
