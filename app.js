@@ -16,6 +16,7 @@ const setupCronJob = require("./config/cronjob");
 const MySQLStore = require("express-mysql-session")(session);
 const passportImp = require("./config/passport");
 const flash = require("connect-flash");
+const checkIsLogged = require("./config/loggedMiddleware");
 
 const cors = require("cors");
 require("dotenv").config();
@@ -24,17 +25,17 @@ require("dotenv").config();
 let activeUsers = 0;
 
 // Socket.io setup
-const server = http.createServer(app);
-const socketIo = require("socket.io");
-const io = socketIo(server);
+// const server = http.createServer(app);
+// const socketIo = require("socket.io");
+// const io = socketIo(server);
 
-io.on("connection", (socket) => {
-  activeUsers++;
+// io.on("connection", (socket) => {
+//   activeUsers++;
 
-  socket.on("disconnect", () => {
-    activeUsers--;
-  });
-});
+//   socket.on("disconnect", () => {
+//     activeUsers--;
+//   });
+// });
 
 // Middleware
 app.use(express.json());
@@ -50,12 +51,12 @@ app.use(injectEnvVariables);
 app.use(cors());
 
 // Single socket middleware
-app.use((req, res, next) => {
-  if (activeUsers > 0 && req.path !== "/already-open") {
-    return res.redirect("/already-open");
-  }
-  next();
-});
+// app.use((req, res, next) => {
+//   if (activeUsers > 0 && req.path !== "/already-open") {
+//     return res.redirect("/already-open");
+//   }
+//   next();
+// });
 
 // Config
 app.set("trust proxy", 1);
@@ -105,6 +106,6 @@ app.get("/already-open", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

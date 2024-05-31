@@ -9,6 +9,7 @@ const zlib = require("zlib");
 const { initializeRedisClient } = require("../config/reddis");
 const { trackLoginAttempts } = require("../config/trackLogin");
 const { where } = require("sequelize");
+const mysql = require("mysql2/promise");
 
 const router = express.Router();
 
@@ -112,6 +113,34 @@ router.get("/login", notAuthenticated, (req, res) => {
 
 //login submit
 router.post("/login", notAuthenticated, async (req, res) => {
+  let activeSessions = [];
+  const options = {
+    host: process.env.HOST,
+    port: 3306,
+    user: "root",
+    password: process.env.PASS,
+    database: process.env.DATABASE,
+  };
+  const connection = await mysql.createConnection(options);
+  try {
+    // Query the session table to get active sessions
+    const [rows] = await connection.execute("SELECT * FROM sessions"); // Replace 'sessions' with your actual session table name
+
+    // Assuming the sessions table has a `data` column where session data is stored as JSO
+
+    const userIdList = rows.map((row) => {
+      const jsonObject = JSON.parse(row.data);
+      const validId = jsonObject.passport?.user?.id;
+      if (validId && validId !== "undefined") {
+        return validId;
+      }
+    });
+    activeSessions = userIdList.filter((id) => id !== undefined);
+  } catch (error) {
+    console.error("Error querying active sessions:", error);
+  } finally {
+    await connection.end();
+  }
   const { email, password } = req.body;
   const forwarded = req.headers["x-forwarded-for"];
   const ip = forwarded
@@ -123,6 +152,9 @@ router.post("/login", notAuthenticated, async (req, res) => {
 
     if (!user) {
       return res.json({ title: "no user" });
+    }
+    if (activeSessions.includes(user.id)) {
+      return res.json({ title: "already logged in" });
     }
     if (user.dataValues.suspended === true) {
       return res.json({ title: "suspended" });
@@ -384,7 +416,9 @@ router.post("/register", notAuthenticated, async (req, res) => {
 });
 
 // Logout route handler
-router.post("/logout", requireAuth, (req, res) => {
+router.post("/logout", requireAuth, async (req, res) => {
+  const userId = req.user.id;
+  const user = await User.findOne({ where: { id: userId } });
   // Perform logout logic here
   req.logOut((err) => {
     if (err) {

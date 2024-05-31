@@ -224,10 +224,6 @@
       </div>
     </div>
   </body>
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-  </script>
   <script>
     function switchicon() {
       const eyehide = document.querySelector(".eyehide");
@@ -357,6 +353,19 @@
             return Toast.fire({
               icon: "error",
               title: "Incorrect Password !",
+            }).then(() => {
+              $("#loginBtn").prop("disabled", false);
+              $("#loading").hide();
+              $("#noloading").show();
+            });
+          }
+          if (data.title == "already logged in") {
+            $("#loginBtn").prop("disabled", true);
+            $("#loading").show();
+            $("#noloading").hide();
+            return Toast.fire({
+              icon: "error",
+              title: "User is already logged in elsewhere!",
             }).then(() => {
               $("#loginBtn").prop("disabled", false);
               $("#loading").hide();
