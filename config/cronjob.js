@@ -386,7 +386,7 @@ function calculateFine(returnDate, currentDate, finePerDay) {
 
 function separateCronJob() {
   cron.schedule(
-    "*/15 * * * * *", // Cron expression for every 15 seconds
+    "*/10 * * * * *", // Cron expression for every 15 seconds
     async () => {
       try {
         const options = {
