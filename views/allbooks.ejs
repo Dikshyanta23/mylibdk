@@ -233,8 +233,13 @@
       </div>
       <% }) }%>
     </div>
+    <button onclick="handleBooksClick(event)">Google books</button>
   </body>
   <script>
+    function handleBooksClick(e) {
+      e.preventDefault();
+      window.location.href = "/dashboard/googlebooks?search=anne";
+    }
     function handleEsewaClick(e, bookId, bookStock, bookArray) {
       e.preventDefault();
       console.log(typeof bookArray);

@@ -96,6 +96,8 @@
     </button>
     <% } %> <% if (isAdmin) { %>
     <button onclick="navigateTo('allusers')">Manage Users</button>
+    <% } %> <% if (isAdmin) { %>
+    <button onclick="navigateTo('googlebooks')">Explore books</button>
     <% } %>
 
     <form id="logoutForm" action="/logout/" method="POST">

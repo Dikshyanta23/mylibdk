@@ -555,10 +555,6 @@ router.post("/resend", notAuthenticated, (req, res) => {
 });
 
 router.post("/heartbeat", async (req, res) => {
-  console.log(
-    "Received heartbeat from client at:",
-    new Date(req.body.timestamp)
-  );
   const user = await User.findOne({ where: { id: req.user.id } });
   const updatedUser = await user.update({ hertbeatTime: Date.now() });
   const savedUser = await user.save();

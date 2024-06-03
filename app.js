@@ -96,7 +96,7 @@ app.use(passport.session());
 
 // Cronjob
 setupCronJob();
-separateCronJob();
+// separateCronJob();
 
 // Routes
 app.use("/", authRoutes);

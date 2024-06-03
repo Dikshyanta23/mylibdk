@@ -12,11 +12,12 @@ const {
 const { requireAuth } = require("../config/authentication");
 const upload = require("../config/multer");
 const user = require("../models/user");
-const { where, UUID } = require("sequelize");
+const { where, UUID, json } = require("sequelize");
 const e = require("express");
 const { Op, Sequelize } = require("sequelize");
 const { v4: uuidv4 } = require("uuid");
 const Pusher = require("pusher");
+const axios = require("axios");
 
 async function getUserRating(bookId) {
   const rates = await Rate.findAll({
@@ -1292,6 +1293,7 @@ router.get("/esewa/verify/:bookId", async (req, res) => {
   }
 });
 const crypto = require("crypto");
+const { log } = require("console");
 
 function generateHash(message) {
   const secret = "8gBm/:&EnhH.1/q";
@@ -1355,6 +1357,96 @@ router.get("/esewa/history", requireAuth, async (req, res) => {
     notifications: notifications,
     payments: newPayments || [],
   });
+});
+
+router.get("/googlebooks", async (req, res) => {
+  const { searchTerm } = req.query;
+  let books = [];
+  let tempBooks = [];
+  const user = await User.findOne({ where: { id: req.user.id } });
+  if (!searchTerm || searchTerm === "") {
+    books = [];
+  }
+  const url = `https://www.googleapis.com/books/v1/volumes`;
+  try {
+    const response = await axios.get(url, {
+      params: {
+        q: searchTerm,
+        key: process.env.GOOGLE_BOOKS_API_KEY,
+      },
+    });
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    tempBooks = response.data.items || [];
+    tempBooks = shuffleArray(tempBooks);
+    if (tempBooks.length > 20) {
+      tempBooks = tempBooks.slice(0, 20);
+    }
+  } catch (error) {}
+
+  tempBooks.forEach((book) => {
+    let author = "unknown";
+    let category = "unknown";
+    let imagePath = "/hp.jpeg";
+    if (!book.volumeInfo.authors) {
+    } else {
+      author = book.volumeInfo.authors[0];
+    }
+    if (!book.volumeInfo.categories) {
+    } else {
+      category = book.volumeInfo.categories[0];
+    }
+    if (!book.volumeInfo.imageLinks || !book.volumeInfo.imageLinks.thumbnail) {
+    } else {
+      imagePath = book.volumeInfo.imageLinks.thumbnail;
+    }
+    const newBook = {
+      id: book.id,
+      name: book.volumeInfo.title,
+      author: author,
+      genre: category,
+      publishedYear: String(book.volumeInfo.publishedDate).slice(0, 4),
+      photo: imagePath,
+    };
+    books = [...books, newBook];
+  });
+  const messages = await Message.findAll({ where: { read: false } });
+  const notifications = filterNotifications(req.user.notification) || [];
+
+  return res.render("googlebooks", {
+    books: books,
+    array: user.dataValues.bookArray || [],
+    messages: messages,
+    user: req.user,
+    searchTerm: "",
+    notifications: notifications,
+  });
+});
+
+router.post("/googlebooks", requireAuth, async (req, res) => {
+  const reqJson = JSON.parse(req.body.body);
+  const { name, author, genre, publishedYear, photo } = reqJson;
+  const newBook = await Book.create({
+    name,
+    author,
+    genre,
+    publishedYear,
+    photo,
+    userId: req.user.id,
+    price: 300,
+    stock: 10,
+    fine: 2,
+  });
+  if (!newBook) {
+    return res.json({ title: "create error" });
+  }
+  return res.json({ title: "success" });
 });
 
 module.exports = router;

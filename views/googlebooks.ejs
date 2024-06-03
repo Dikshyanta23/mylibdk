@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Explore books</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        text-align: center;
+      }
+
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+
+      .card {
+        width: calc(
+          33.33% - 20px
+        ); /* By default, three cards per row with space between */
+        margin-bottom: 20px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+      }
+
+      .card img {
+        width: 100%;
+        height: 450px;
+        border-radius: 5px;
+        margin-bottom: 15px; /* Increased margin to provide space between image and text */
+      }
+
+      /* Button styles */
+      .btn-container {
+        display: flex;
+        gap: 10px;
+        justify-content: space-between; /* Buttons evenly spaced */
+        margin-top: 15px; /* Add margin between text and buttons */
+      }
+
+      .btn {
+        width: calc(
+          50% - 5px
+        ); /* Adjust button width to be half of the container */
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .edit-btn {
+        background-color: green;
+      }
+      .borrow-btn {
+        background-color: gray;
+      }
+      .review-btn {
+        background-color: #daa520;
+      }
+      .esewabtn {
+        background-color: green;
+      }
+      .delete-btn {
+        background-color: #f44336;
+      }
+
+      .card p strong {
+        color: green;
+      }
+
+      @media screen and (max-width: 768px) {
+        .card {
+          width: calc(
+            50% - 20px
+          ); /* Two cards per row with space between on smaller screens */
+        }
+      }
+
+      @media screen and (max-width: 480px) {
+        .card {
+          width: 100%; /* Single card per row on smallest screens */
+        }
+      }
+      .search-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        padding: 0 40px;
+        gap: 40px;
+      }
+
+      .search-bar {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-right: 10px;
+        flex-grow: 1; /* Allow the input to grow to fill available space */
+        max-width: 500px;
+      }
+
+      .submit-button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      label {
+        margin-left: 20px;
+      }
+
+      input[type="checkbox"] {
+        margin-right: 5px;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <%- include('nav') %> <% const {isAdmin, bookArray, waitlist } =
+    user.dataValues || 'false'%>
+    <h1>Explore books</h1>
+    <div class="search-container">
+      <input
+        type="text"
+        placeholder="Search"
+        class="search-bar"
+        id="inpt"
+        value="<%= searchTerm %>"
+        ||
+      />
+      <button class="submit-button" onclick="handleBookClick(event)">
+        Submit
+      </button>
+    </div>
+    <div class="container">
+      <% if (books.length === 0) { %>
+      <h1>No books found...</h1>
+      <% } else { %> <% books.forEach(book => { %>
+      <div class="card">
+        <img src="<%= book.photo %>" alt="<%= book.name %>" />
+        <h2><%= book.name %></h2>
+        <p><strong>Author:</strong> <%= book.author %></p>
+        <p><strong>Genre:</strong> <%= book.genre %></p>
+        <p><strong>Published Year:</strong> <%= book.publishedYear %></p>
+        <% if (isAdmin) { %>
+        <button
+          class="edit-btn"
+          onclick="addbook(event, '<%=book.id%>', '<%=book.name%>','<%=book.author%>','<%=book.genre%>','<%=book.publishedYear%>', '<%=book.photo%>')"
+        >
+          Add to site
+        </button>
+      </div>
+      <% } %>
+      <div class="btn-container" style="margin-bottom: 10px"></div>
+      <!-- Buttons -->
+      <% }) }%>
+    </div>
+  </body>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+    const Toast2 = Swal.mixin({
+      toast: true,
+      position: "top-right",
+      iconColor: "#014B92",
+      customClass: {
+        popup: "colored-toast",
+      },
+      showConfirmButton: false,
+      timer: 4000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener("mouseenter", Swal.stopTimer);
+        toast.addEventListener("mouseleave", Swal.resumeTimer);
+      },
+    });
+
+    function addbook(e, id, name, author, genre, publishedYear, photo) {
+      e.preventDefault();
+      console.log("yay");
+      axios
+        .post(`/dashboard/googlebooks/`, {
+          body: JSON.stringify({
+            id,
+            name,
+            author,
+            genre,
+            publishedYear,
+            photo,
+          }),
+        })
+        .then((res) => {
+          if (res.data.title == "success") {
+            return Toast.fire({
+              icon: "success",
+              title: "Book added successfully.",
+            }).then(() => {
+              window.location.reload();
+            });
+          }
+          if (res.data.title == "create error") {
+            return Toast.fire({
+              icon: "error",
+              title: "db err",
+            });
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+
+    async function handleBookClick(e) {
+      e.preventDefault();
+      const searchTerm = document.getElementById("inpt").value;
+      if (searchTerm == "") {
+        return Toast.fire({
+          icon: "error",
+          title: "Please enter a search term",
+        });
+
+        //   window.location.href=`http:localhost:5000/dashboard/googlebooks?searchTerm=${searchTerm}`
+      }
+      window.location.href = `googlebooks?searchTerm=${searchTerm}`;
+    }
+  </script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    // Send a heartbeat signal to the server every 30 seconds
+    setInterval(function () {
+      fetch("/heartbeat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ timestamp: Date.now() }),
+      });
+    }, 1000); // 10 seconds
+  </script>
+</html>
